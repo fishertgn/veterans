@@ -1,0 +1,8 @@
+config.json
+out/
+opcions/
+__pycache__/
+*.pyc
+launchd.*
+PROVA
+.DS_Store

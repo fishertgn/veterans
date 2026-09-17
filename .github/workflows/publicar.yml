@@ -1,0 +1,41 @@
+name: Publicador Veterans Tarragona
+on:
+  schedule:
+    # Hores en UTC. Cobreixen l'horari d'estiu (+2) i el d'hivern (+1); el script decideix amb l'hora de Madrid.
+    - cron: '5 15-22 * * 5'   # divendres 17h (calendari) i 22h+ (resultats)
+    - cron: '5 12-22 * * 6'   # dissabte 14-23h
+    - cron: '5 7-17 * * 0'    # diumenge 9-18h
+    - cron: '5 7-11 * * 1'    # dilluns 9h (paquet setmanal), amb marge per retards
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'programat | ara (resultats) | dilluns (paquet sencer) | prova'
+        default: 'prova'
+permissions:
+  contents: write
+concurrency: publicador
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - name: Executar publicador
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          MODE: ${{ github.event.inputs.mode || 'programat' }}
+        run: |
+          case "$MODE" in
+            ara) python publicar.py --ara ;;
+            dilluns) python publicar.py --dilluns ;;
+            prova) touch PROVA && python publicar.py ;;
+            *) python publicar.py ;;
+          esac
+      - name: Desar l'estat
+        run: |
+          git config user.name "publicador"; git config user.email "publicador@users.noreply.github.com"
+          git add estat.json publicar.log 2>/dev/null || true
+          git diff --cached --quiet || (git commit -m "estat $(date -u +%FT%H:%MZ)" && git push)
