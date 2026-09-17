@@ -90,7 +90,7 @@ def main():
         if os.path.exists(os.path.join(V,'PROVA')):
             os.remove(os.path.join(V,'PROVA'))
             r=dict(id=0,h='UE Veterans Creixell',a='CE Altafulla',hl='https://minifutboltarragones.mygol.es/upload/46/57/skry502u.png',al='https://minifutboltarragones.mygol.es/upload/7F/78/o3xgkgdj.png',hs=2,as_=3,dt=datetime.datetime(2026,9,26,16,0),hora='16:00',camp='F11 Camp UE Creixell',comp='COPA',jornada='Jornada 1',grup='GRUP C')
-            ok=envia_fitxer(historia_resultat(r),'✅ Prova del publicador automàtic (launchd + Chrome + Telegram)'); log('PROVA enviada',ok); return
+            ok=envia_fitxer(historia_resultat(r),'✅ Prova del publicador automàtic (GitHub Actions)'); log('PROVA enviada',ok); return
         if '--ara' in sys.argv: return comprova_resultats(avui)
         if '--dilluns' in sys.argv: return paquet_dilluns(avui)
         if wd==0 and 9<=h<=13: paquet_dilluns(avui)      # tolera retards del programador; l'estat evita repetir
