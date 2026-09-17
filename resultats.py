@@ -54,10 +54,43 @@ def generar(d0,d1,outdir,test=False):
         P.render(html_pagina(sub,p,i,len(pags)),png); out.append((f'Resultats {i}/{len(pags)}' if len(pags)>1 else 'Resultats',len(p),png))
     return out
 
+CSS_STORY=""".r{height:96px;flex:none;background:#fff;border-radius:12px;border-left:12px solid #999;box-shadow:0 2px 6px rgba(0,0,0,.05);display:grid;grid-template-columns:1fr 64px 170px;align-items:center;gap:10px;padding:0 14px 0 16px}
+.eq,.sc{display:flex;flex-direction:column;gap:6px;min-width:0}
+.t{display:flex;align-items:center;gap:10px;font-weight:500;font-size:24px;line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#777;height:36px}
+.t.w{color:#111;font-weight:600}.t img{width:36px;height:36px;object-fit:contain;flex:none}
+.sc b{font-family:'Barlow Condensed';font-weight:700;font-size:40px;line-height:36px;height:36px;text-align:center;color:#9a9a9a}.sc b.w{color:#111}.sc b.e{color:#111}
+.sc.np{justify-content:center}.sc.np b{color:#bbb}
+.g{font-weight:700;font-size:15px;letter-spacing:1.5px;border:3px solid;border-radius:999px;padding:6px 8px;text-transform:uppercase;text-align:center;white-space:nowrap}"""
+def html_story(dia,rs,pag,npag):
+    def row(r):
+        col=COLORS.get(r['comp'],'#555'); et=f"{r['comp']}{' · '+r['grup'] if r['grup'] else ''}"; jugat=r['status']==5
+        w=('e','e') if not jugat else ('w','lo') if r['hs']>r['as_'] else ('lo','w') if r['hs']<r['as_'] else ('e','e')
+        sc=f'<span class="sc"><b class="{w[0]}">{r["hs"]}</b><b class="{w[1]}">{r["as_"]}</b></span>' if jugat else '<span class="sc np"><b>–</b></span>'
+        tw=(w[0] if jugat and w[0]=='w' else '',w[1] if jugat and w[1]=='w' else '')
+        return (f'<div class="r" style="border-left-color:{col}"><span class="eq"><span class="t {tw[0]}"><img src="{r["hl"]}"><span>{r["h"]}</span></span>'
+                f'<span class="t {tw[1]}"><img src="{r["al"]}"><span>{r["a"]}</span></span></span>{sc}<span class="g" style="color:{col};border-color:{col}">{et}</span></div>')
+    return P.story_shell('Resultats',dia,''.join(row(r) for r in rs),CSS_STORY,pag,npag)
+
+def generar_story(d0,d1,outdir,test=False,per_pag=12):
+    rows=P.partits(d0,d1,jugats=None)
+    if test:
+        random.seed(7)
+        for i,r in enumerate(rows):
+            r['hs'],r['as_']=random.choice([0,1,1,2,2,3,4]),random.choice([0,1,1,2,2,3]); r['status']=1 if i in (2,9) else 5
+    out=[]
+    for dia in sorted({r['dt'].date() for r in rows}):
+        rs=sorted([r for r in rows if r['dt'].date()==dia],key=lambda r:(r['dt'],r['comp'],r['grup'])); et=f'{DIES[dia.weekday()]} {dia.day} {MES[dia.month-1]}'
+        pags=[rs[i:i+per_pag] for i in range(0,len(rs),per_pag)]
+        for i,p in enumerate(pags,1):
+            png=os.path.join(outdir,f'story_resultats_{dia.isoformat()}'+(f'_{i}' if len(pags)>1 else '')+'.png')
+            P.render_story(html_story(et,p,i,len(pags)),png); out.append(('Història resultats '+et+(f' ({i}/{len(pags)})' if len(pags)>1 else ''),len(p),png))
+    return out
+
 if __name__=='__main__':
     d0=datetime.date.fromisoformat(sys.argv[1]); d1=datetime.date.fromisoformat(sys.argv[2])
     outdir=os.path.join(V,'out'); os.makedirs(outdir,exist_ok=True)
     res=generar(d0,d1,outdir,test='--test' in sys.argv)
+    if '--story' in sys.argv: res+=generar_story(d0,d1,outdir,test='--test' in sys.argv)
     if not res: print('Cap partit jugat en aquest període.')
     for e,n,p in res: print(e,n,'partits ->',p)
     if '--send' in sys.argv:

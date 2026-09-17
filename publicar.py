@@ -59,8 +59,10 @@ def paquet_dilluns(avui):
     if clau in e['fets']: log('dilluns ja fet'); return
     d0,d1=avui-datetime.timedelta(days=3),avui-datetime.timedelta(days=1)   # divendres..diumenge passats
     envia_text(f'📊 Paquet del dilluns · cap de setmana {d0.day}-{d1.day} {P.MES[d1.month-1]}')
-    for et,n,p in R.generar(d0,d1,OUT): envia_fitxer(p,f'{et} · {n} partits')
-    for et,p in K.generar(OUT): envia_fitxer(p,et)
+    for et,n,p in R.generar(d0,d1,OUT): envia_fitxer(p,f'POST · {et} · {n} partits')
+    for et,n,p in R.generar_story(d0,d1,OUT): envia_fitxer(p,f'HISTÒRIA · {et} · {n} partits')
+    for et,p in K.generar(OUT): envia_fitxer(p,'POST · '+et)
+    for et,p in K.generar_story(OUT): envia_fitxer(p,'HISTÒRIA · '+et.replace('Història ',''))
     n0,n1=cap_de_setmana(avui+datetime.timedelta(days=4))
     for et,n,p in P.generar(n0,n1,OUT): envia_fitxer(p,f'📅 Pròxims partits · {et} · {n} partits')
     for et,n,p in P.generar_story(n0,n1,OUT): envia_fitxer(p,f'📅 {et} · {n} partits')

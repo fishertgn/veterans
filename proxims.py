@@ -99,6 +99,24 @@ body{{background:#f1f1f1;font-family:Barlow,sans-serif;color:#151515}}
 .ft{{position:absolute;right:44px;bottom:26px;font-weight:600;font-size:16px;letter-spacing:2px;color:#b5b5b5}}
 </style></head><body><div class="hd"><img src="{LOGO}"><div class="t">Pròxims partits</div><div class="d">{dia}</div>{pg}</div><div class="list">{rows}</div><div class="ft">@veteranstarragona</div></body></html>"""
 
+def story_shell(titol,sub,cos,css,pag=1,npag=1):
+    """Carcassa comuna de les històries 1080x1920: logo gran, títol, subtítol i full clar."""
+    pg=f'<span class="pg">{pag}/{npag}</span>' if npag>1 else ''
+    return f"""<!doctype html><html><head><meta charset="utf-8">{FONTS}<style>
+*{{margin:0;padding:0;box-sizing:border-box}}html,body{{width:1080px;height:1920px;overflow:hidden;position:relative}}img{{display:block}}
+body{{background:{RED};font-family:Barlow,sans-serif;color:#151515}}
+.logo{{position:absolute;left:50%;top:30px;transform:translateX(-50%);width:330px;height:330px}}
+.tt{{position:absolute;left:0;top:360px;width:1080px;text-align:center;color:#fff;font-family:'Barlow Condensed';font-weight:700;font-size:76px;letter-spacing:2px;line-height:1;text-transform:uppercase}}
+.dd{{position:absolute;left:0;top:440px;width:1080px;text-align:center;color:#ffd6d6;font-family:'Barlow Condensed';font-weight:700;font-size:46px;letter-spacing:3px;line-height:1;text-transform:uppercase}}
+.pg{{position:absolute;right:50px;top:60px;color:#fff;font-family:'Barlow Condensed';font-weight:700;font-size:44px;opacity:.85}}
+.sheet{{position:absolute;left:40px;top:520px;width:1000px;max-height:1320px;background:#f1f1f1;border-radius:24px;padding:22px 20px;display:flex;flex-direction:column;gap:10px;overflow:hidden}}
+.ft{{position:absolute;left:0;bottom:28px;width:1080px;text-align:center;color:#ffb3b3;font-weight:600;font-size:20px;letter-spacing:3px}}
+{css}
+</style></head><body><img class="logo" src="{LOGO}">{pg}<div class="tt">{titol}</div><div class="dd">{sub}</div><div class="sheet">{cos}</div><div class="ft">@veteranstarragona</div></body></html>"""
+
+def render_story(html,png):
+    tmp=png[:-4]+'.html'; open(tmp,'w').write(html); return captura(tmp,png,1080,1920)
+
 def html_story(dia,rs,pag,npag):
     """Història 1080x1920: un dia per història, files grans (12 màxim)."""
     def row(r):
