@@ -65,6 +65,17 @@ def generar(outdir,ids=None,stories=True):
                 png=os.path.join(outdir,'story_'+base+'.png')
                 P.render_story(P.story_shell(c['titol'],sub,cos(rs[:10],tipus),css(col,96,24,16,50,38,170,110,54)),png); out.append((f'HISTÒRIA · {c["titol"]} {sub}',png))
     return out
+def generar_pichichi(outdir,ids=None):
+    """Història curta del dijous: el pichichi i els tres perseguidors de cada competició."""
+    out=[]; ts=[t['id'] for t in P.competicions()] if ids is None else ids
+    for tid in ts:
+        nom,comp,rs=dades(tid,'scorers')
+        if len(rs)<3: continue
+        col='#ffd400' if comp=='COPA' else COLORS.get(comp,'#d60000'); sub=K.nom_curt(nom) if 'DIVISI' in nom.upper() else 'Copa F11 Veterans'
+        png=os.path.join(outdir,f'story_pichichi_{comp.lower().replace(" ","_")}.png')
+        P.render_story(P.story_shell('Pichichi',sub,cos(rs[:4],'scorers'),css(col,110,28,18,58,42,220,140,64)),png); out.append((f'HISTÒRIA · Pichichi {sub}',png))
+    return out
+
 if __name__=='__main__':
     outdir=os.path.join(V,'out'); os.makedirs(outdir,exist_ok=True)
     res=generar(outdir,[102] if '--test' in sys.argv else None)

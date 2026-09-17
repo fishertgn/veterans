@@ -5,7 +5,7 @@
     publicar.py --dilluns  → força el paquet del dilluns ara mateix"""
 import os, sys, json, time, datetime, subprocess, hashlib, traceback
 V=os.path.dirname(os.path.abspath(__file__)); os.chdir(V); sys.path.insert(0,V)
-import proxims as P, resultats as R, classificacio as K, story as S
+import proxims as P, resultats as R, classificacio as K, story as S, golejadors as G
 CFG=P.cfg(); ESTAT=os.path.join(V,'estat.json'); OUT=os.path.join(V,'out'); os.makedirs(OUT,exist_ok=True)
 LOG=open(os.path.join(V,'publicar.log'),'a')
 def log(*a):
@@ -63,6 +63,7 @@ def paquet_dilluns(avui):
     for et,n,p in R.generar_story(d0,d1,OUT): envia_fitxer(p,f'HISTÒRIA · {et} · {n} partits')
     for et,p in K.generar(OUT): envia_fitxer(p,'POST · '+et)
     for et,p in K.generar_story(OUT): envia_fitxer(p,'HISTÒRIA · '+et.replace('Història ',''))
+    for et,p in G.generar(OUT): envia_fitxer(p,et)      # pichichi i Zamora (si ja hi ha dades)
     n0,n1=cap_de_setmana(avui+datetime.timedelta(days=4))
     for et,n,p in P.generar(n0,n1,OUT): envia_fitxer(p,f'📅 Pròxims partits · {et} · {n} partits')
     for et,n,p in P.generar_story(n0,n1,OUT): envia_fitxer(p,f'📅 {et} · {n} partits')
@@ -83,6 +84,8 @@ def proxims_setmana(avui):
     envia_text(f'📅 {dia} · Pròxims partits del cap de setmana {d0.day}-{d1.day} {P.MES[d1.month-1]}. {nota}')
     for et,n,p in P.generar(d0,d1,OUT): envia_fitxer(p,f'Pròxims partits · {et} · {n} partits')
     for et,n,p in P.generar_story(d0,d1,OUT): envia_fitxer(p,f'{et} · {n} partits')
+    if avui.weekday()==3:
+        for et,p in G.generar_pichichi(OUT): envia_fitxer(p,et)
     e['calendari_hash']=h; e['fets'][clau]=True; desa(e); log('proxims enviat',dia)
 
 def main():
