@@ -16,16 +16,24 @@ def estat():
     except Exception: return {'enviats':{},'fets':{}}
 def desa(e): json.dump(e,open(ESTAT,'w'),indent=1,ensure_ascii=False)
 
-def tg(method,**fields):
-    args=['curl','-s','-m','240','-X','POST',f'https://api.telegram.org/bot{CFG["telegram_bot_token"]}/{method}','-F',f'chat_id={CFG["telegram_chat_id"]}']
+def _temes():
+    try: return json.load(open(os.path.join(V,'temes.json')))
+    except Exception: return {}
+TEMES=_temes()      # {"grup": -100..., "temes": {"directe": 12, "proxims": 14, ...}}
+def tg(method,tema=None,**fields):
+    grup=os.environ.get('TELEGRAM_GROUP_ID') or TEMES.get('grup')
+    desti=grup if grup else CFG['telegram_chat_id']
+    args=['curl','-s','-m','240','-X','POST',f'https://api.telegram.org/bot{CFG["telegram_bot_token"]}/{method}','-F',f'chat_id={desti}']
+    fil=(TEMES.get('temes') or {}).get(tema) if (grup and tema) else None
+    if fil: args+=['-F',f'message_thread_id={fil}']
     for k,v in fields.items(): args+=['-F',f'{k}={v}']
     for i in range(4):
         r=subprocess.run(args+['-o','/dev/null','-w','%{http_code}'],capture_output=True,text=True)
         if r.stdout=='200': return True
         time.sleep(5)
-    log('ERROR telegram',method,r.stdout); return False
-def envia_fitxer(p,caption): return tg('sendDocument',document='@'+p,caption=caption)
-def envia_text(t): return tg('sendMessage',text=t)
+    log('ERROR telegram',method,tema,r.stdout); return False
+def envia_fitxer(p,caption,tema=None): return tg('sendDocument',tema,document='@'+p,caption=caption)
+def envia_text(t,tema='sistema'): return tg('sendMessage',tema,text=t)
 
 def cap_de_setmana(d):
     """Divendres..diumenge de la setmana de d (si d és dilluns-dijous, el cap de setmana anterior... no: el vinent)."""
@@ -50,7 +58,7 @@ def comprova_resultats(avui):
     log(f'resultats {d0}..{d1}: {len(rows)} jugats, {len(nous)} nous')
     for r in sorted(nous,key=lambda r:r['dt']):
         png=historia_resultat(r)
-        if envia_fitxer(png,f'🔴 FINAL · {r["h"]} {r["hs"]}-{r["as_"]} {r["a"]} · {r["comp"]}{" · "+r["grup"] if r["grup"] else ""}'):
+        if envia_fitxer(png,f'🔴 FINAL · {r["h"]} {r["hs"]}-{r["as_"]} {r["a"]} · {r["comp"]}{" · "+r["grup"] if r["grup"] else ""}','directe'):
             e['enviats'][str(r['id'])]=f'{r["hs"]}-{r["as_"]}'; desa(e)
     return len(nous)
 
@@ -58,15 +66,15 @@ def paquet_dilluns(avui):
     e=estat(); clau='dilluns_'+avui.isoformat()
     if clau in e['fets']: log('dilluns ja fet'); return
     d0,d1=avui-datetime.timedelta(days=3),avui-datetime.timedelta(days=1)   # divendres..diumenge passats
-    envia_text(f'📊 Paquet del dilluns · cap de setmana {d0.day}-{d1.day} {P.MES[d1.month-1]}')
-    for et,n,p in R.generar(d0,d1,OUT): envia_fitxer(p,f'POST · {et} · {n} partits')
-    for et,n,p in R.generar_story(d0,d1,OUT): envia_fitxer(p,f'HISTÒRIA · {et} · {n} partits')
-    for et,p in K.generar(OUT): envia_fitxer(p,'POST · '+et)
-    for et,p in K.generar_story(OUT): envia_fitxer(p,'HISTÒRIA · '+et.replace('Història ',''))
-    for et,p in G.generar(OUT): envia_fitxer(p,et)      # pichichi i Zamora (si ja hi ha dades)
+    envia_text(f'📊 Paquet del dilluns · cap de setmana {d0.day}-{d1.day} {P.MES[d1.month-1]}. Trobaràs cada cosa al seu tema.','sistema')
+    for et,n,p in R.generar(d0,d1,OUT): envia_fitxer(p,f'POST · {et} · {n} partits','resultats')
+    for et,n,p in R.generar_story(d0,d1,OUT): envia_fitxer(p,f'HISTÒRIA · {et} · {n} partits','resultats')
+    for et,p in K.generar(OUT): envia_fitxer(p,'POST · '+et,'classificacio')
+    for et,p in K.generar_story(OUT): envia_fitxer(p,'HISTÒRIA · '+et.replace('Història ',''),'classificacio')
+    for et,p in G.generar(OUT): envia_fitxer(p,et,'golejadors')      # pichichi i Zamora (si ja hi ha dades)
     n0,n1=cap_de_setmana(avui+datetime.timedelta(days=4))
-    for et,n,p in P.generar(n0,n1,OUT): envia_fitxer(p,f'📅 Pròxims partits · {et} · {n} partits')
-    for et,n,p in P.generar_story(n0,n1,OUT): envia_fitxer(p,f'📅 {et} · {n} partits')
+    for et,n,p in P.generar(n0,n1,OUT): envia_fitxer(p,f'📅 Pròxims partits · {et} · {n} partits','proxims')
+    for et,n,p in P.generar_story(n0,n1,OUT): envia_fitxer(p,f'📅 {et} · {n} partits','proxims')
     e['fets'][clau]=True; e['calendari_hash']=hash_calendari(n0,n1); desa(e); log('dilluns enviat')
 
 def hash_calendari(d0,d1):
@@ -81,11 +89,11 @@ def proxims_setmana(avui):
     if avui.weekday()==4:
         nota='⚠️ El calendari ha CANVIAT des d\'ahir. Fes servir aquesta versió.' if h!=e.get('calendari_hash') else 'Sense canvis des d\'ahir.'
     else: nota='Primera versió de la setmana.'
-    envia_text(f'📅 {dia} · Pròxims partits del cap de setmana {d0.day}-{d1.day} {P.MES[d1.month-1]}. {nota}')
-    for et,n,p in P.generar(d0,d1,OUT): envia_fitxer(p,f'Pròxims partits · {et} · {n} partits')
-    for et,n,p in P.generar_story(d0,d1,OUT): envia_fitxer(p,f'{et} · {n} partits')
+    envia_text(f'📅 {dia} · Pròxims partits del cap de setmana {d0.day}-{d1.day} {P.MES[d1.month-1]}. {nota}','proxims')
+    for et,n,p in P.generar(d0,d1,OUT): envia_fitxer(p,f'Pròxims partits · {et} · {n} partits','proxims')
+    for et,n,p in P.generar_story(d0,d1,OUT): envia_fitxer(p,f'{et} · {n} partits','proxims')
     if avui.weekday()==3:
-        for et,p in G.generar_pichichi(OUT): envia_fitxer(p,et)
+        for et,p in G.generar_pichichi(OUT): envia_fitxer(p,et,'golejadors')
     e['calendari_hash']=h; e['fets'][clau]=True; desa(e); log('proxims enviat',dia)
 
 def main():
@@ -95,7 +103,7 @@ def main():
         if os.path.exists(os.path.join(V,'PROVA')):
             os.remove(os.path.join(V,'PROVA'))
             r=dict(id=0,h='UE Veterans Creixell',a='CE Altafulla',hl='https://minifutboltarragones.mygol.es/upload/46/57/skry502u.png',al='https://minifutboltarragones.mygol.es/upload/7F/78/o3xgkgdj.png',hs=2,as_=3,dt=datetime.datetime(2026,9,26,16,0),hora='16:00',camp='F11 Camp UE Creixell',comp='COPA',jornada='Jornada 1',grup='GRUP C')
-            ok=envia_fitxer(historia_resultat(r),'✅ Prova del publicador automàtic (GitHub Actions)'); log('PROVA enviada',ok); return
+            ok=envia_fitxer(historia_resultat(r),'✅ Prova del publicador automàtic (GitHub Actions)','sistema'); log('PROVA enviada',ok); return
         if '--ara' in sys.argv: return comprova_resultats(avui)
         if '--dilluns' in sys.argv: return paquet_dilluns(avui)
         if '--proxims' in sys.argv: return proxims_setmana(avui)
