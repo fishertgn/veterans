@@ -50,7 +50,7 @@ def generar(d0,d1,outdir,test=False):
     if not rows: return out
     sub=subtitol(rows,d0,d1); pags=[rows[i:i+PER_PAG] for i in range(0,len(rows),PER_PAG)]
     for i,p in enumerate(pags,1):
-        png=os.path.join(outdir,f'resultats_{d0.isoformat()}'+(f'_{i}' if len(pags)>1 else '')+'.png')
+        dies=sorted({x['dt'].date() for x in rows}); png=P.nom_fitxer(outdir,'RESULTATS',[x['comp'] for x in rows],dies[0],dies[-1],'POST',i,len(pags))
         P.render(html_pagina(sub,p,i,len(pags)),png); out.append((f'Resultats {i}/{len(pags)}' if len(pags)>1 else 'Resultats',len(p),png))
     return out
 
@@ -82,7 +82,7 @@ def generar_story(d0,d1,outdir,test=False,per_pag=12):
         rs=sorted([r for r in rows if r['dt'].date()==dia],key=lambda r:(r['dt'],r['comp'],r['grup'])); et=f'{DIES[dia.weekday()]} {dia.day} {MES[dia.month-1]}'
         pags=[rs[i:i+per_pag] for i in range(0,len(rs),per_pag)]
         for i,p in enumerate(pags,1):
-            png=os.path.join(outdir,f'story_resultats_{dia.isoformat()}'+(f'_{i}' if len(pags)>1 else '')+'.png')
+            png=P.nom_fitxer(outdir,'RESULTATS',[x['comp'] for x in rs],dia,None,'HISTORIA',i,len(pags))
             P.render_story(html_story(et,p,i,len(pags)),png); out.append(('Història resultats '+et+(f' ({i}/{len(pags)})' if len(pags)>1 else ''),len(p),png))
     return out
 

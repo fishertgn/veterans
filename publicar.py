@@ -3,7 +3,7 @@
 Ús: publicar.py            → mode programat (surt si no toca res)
     publicar.py --ara      → força la comprovació de resultats ara mateix
     publicar.py --dilluns  → força el paquet del dilluns ara mateix"""
-import os, sys, json, time, datetime, subprocess, hashlib, traceback
+import os, sys, re, json, time, datetime, subprocess, hashlib, traceback
 V=os.path.dirname(os.path.abspath(__file__)); os.chdir(V); sys.path.insert(0,V)
 import proxims as P, resultats as R, classificacio as K, story as S, golejadors as G
 CFG=P.cfg(); ESTAT=os.path.join(V,'estat.json'); OUT=os.path.join(V,'out'); os.makedirs(OUT,exist_ok=True)
@@ -46,7 +46,8 @@ def etiqueta_data(dt): return f'{P.DIES[dt.weekday()]} {dt.day} {P.MES[dt.month-
 def historia_resultat(r):
     html=S.resultat(r['h'],r['a'],r['hl'],r['al'],r['hs'],r['as_'],etiqueta_data(r['dt']),r['hora'],r['camp'].upper(),
                     'COPA F11 VETERANS' if r['comp']=='COPA' else f"LLIGA {r['comp'].split()[-1]} DIVISIÓ",r['jornada'].replace('Jornada','J').strip(),r['grup'])
-    png=os.path.join(OUT,f'historia_{r["id"]}.png'); tmp=png[:-4]+'.html'; open(tmp,'w').write(html)
+    nom=re.sub(r'[\\/:*?"<>|;,.]','',f"RESULTAT {P.etiqueta_comp(r['comp'])} {r['h']} {r['hs']}-{r['as_']} {r['a']}".upper())+' '+P.data_fitxer(r['dt'].date())
+    png=os.path.join(OUT,nom+'.png'); tmp=png[:-4]+'.html'; open(tmp,'w').write(html)
     P.captura(tmp,png,1080,1920,10000)
     return png
 

@@ -17,8 +17,25 @@ CHROME_FLAGS=['--headless=new','--disable-gpu','--hide-scrollbars','--allow-file
 def cfg():
     if os.environ.get('TELEGRAM_BOT_TOKEN'): return {'telegram_bot_token':os.environ['TELEGRAM_BOT_TOKEN'],'telegram_chat_id':os.environ['TELEGRAM_CHAT_ID']}
     return json.load(open(os.path.join(V,'config.json')))
+def avui_madrid():
+    from zoneinfo import ZoneInfo
+    return datetime.datetime.now(ZoneInfo('Europe/Madrid')).date()
+def etiqueta_comp(comp):
+    """'COPA' -> 'COPA', 'LLIGA 1A' -> '1ADIVISIO'."""
+    m=re.search(r'(\d)A',comp or ''); return f'{m.group(1)}ADIVISIO' if m else (comp or '').upper()
+def data_fitxer(d0,d1=None):
+    if not d1 or d1==d0: return d0.strftime('%d.%m.%Y')
+    if (d0.month,d0.year)==(d1.month,d1.year): return f'{d0.day:02d}-{d1.day:02d}.{d0.month:02d}.{d0.year}'
+    return f'{d0.strftime("%d.%m")}-{d1.strftime("%d.%m.%Y")}'
+def nom_fitxer(outdir,titol,comps,d0,d1=None,format='POST',pag=1,npag=1):
+    """Ex.: RESULTATS COPA 26-27.09.2026 POST.png · la competició només hi surt si la imatge és d'una sola."""
+    comps=sorted({c for c in comps if c}); tag=etiqueta_comp(comps[0]) if len(comps)==1 else ''
+    parts=[titol,tag,data_fitxer(d0,d1),format]+([f'{pag}de{npag}'] if npag>1 else [])
+    nom=' '.join(x for x in parts if x)
+    return os.path.join(outdir,re.sub(r'[\\/:*?"<>|;,]','',nom)+'.png')
 def captura(html_path,png,w,h,budget=20000):
-    subprocess.run([CHROME]+CHROME_FLAGS+[f'--window-size={w},{h}',f'--virtual-time-budget={budget}',f'--screenshot={png}','file://'+html_path],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
+    import urllib.parse
+    subprocess.run([CHROME]+CHROME_FLAGS+[f'--window-size={w},{h}',f'--virtual-time-budget={budget}',f'--screenshot={png}','file://'+urllib.parse.quote(html_path)],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
     return png
 DIES=['DILLUNS','DIMARTS','DIMECRES','DIJOUS','DIVENDRES','DISSABTE','DIUMENGE']; MES=['GEN','FEB','MAR','ABR','MAI','JUN','JUL','AGO','SET','OCT','NOV','DES']
 FONTS='<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">'
@@ -170,7 +187,7 @@ def generar_story(d0,d1,outdir,per_pag=12):
         rs=[r for r in rows if r['dt'].date()==dia]; et=f'{DIES[dia.weekday()]} {dia.day} {MES[dia.month-1]}'
         pags=[rs[i:i+per_pag] for i in range(0,len(rs),per_pag)]
         for i,p in enumerate(pags,1):
-            png=os.path.join(outdir,f'story_proxims_{dia.isoformat()}'+(f'_{i}' if len(pags)>1 else '')+'.png')
+            png=nom_fitxer(outdir,'PROXIMS PARTITS',[r['comp'] for r in rs],dia,None,'HISTORIA',i,len(pags))
             tmp=png[:-4]+'.html'; open(tmp,'w').write(html_story(et,p,i,len(pags)))
             captura(tmp,png,1080,1920)
             out.append(('Història '+et+(f' ({i}/{len(pags)})' if len(pags)>1 else ''),len(p),png))
@@ -188,7 +205,7 @@ def generar(d0,d1,outdir):
         etiqueta=f'{DIES[dia.weekday()]} {dia.day} {MES[dia.month-1]}'
         pags=[rs[i:i+PER_PAG] for i in range(0,len(rs),PER_PAG)]
         for i,p in enumerate(pags,1):
-            png=os.path.join(outdir,f'proxims_{dia.isoformat()}'+(f'_{i}' if len(pags)>1 else '')+'.png')
+            png=nom_fitxer(outdir,'PROXIMS PARTITS',[r['comp'] for r in rs],dia,None,'POST',i,len(pags))
             out.append((etiqueta+(f' ({i}/{len(pags)})' if len(pags)>1 else ''),len(p),render(html_pagina(etiqueta,p,i,len(pags)),png)))
     return out
 

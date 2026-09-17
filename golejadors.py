@@ -57,12 +57,11 @@ def generar(outdir,ids=None,stories=True):
             nom,comp,rs=dades(tid,tipus)
             if len(rs)<3: continue
             col=COLORS.get(comp,'#d60000'); col='#ffd400' if comp=='COPA' else col; sub=K.nom_curt(nom) if 'DIVISI' in nom.upper() else 'Copa F11 Veterans'; c=CFG[tipus]
-            base=f'{c["titol"].lower()}_{comp.lower().replace(" ","_")}'
-            png=os.path.join(outdir,base+'.png'); tmp=png[:-4]+'.html'
+            png=P.nom_fitxer(outdir,c['titol'].upper(),[comp],P.avui_madrid(),None,'POST'); tmp=png[:-4]+'.html'
             open(tmp,'w').write(P.post_shell(c['titol'],sub,cos(rs[:10],tipus),css(col,82,20,14,44,34,150,96,48),peu='Dades oficials de Minifutbol Tarragonès'))
             P.captura(tmp,png,1080,1350); out.append((f'POST · {c["titol"]} {sub}',png))
             if stories:
-                png=os.path.join(outdir,'story_'+base+'.png')
+                png=P.nom_fitxer(outdir,c['titol'].upper(),[comp],P.avui_madrid(),None,'HISTORIA')
                 P.render_story(P.story_shell(c['titol'],sub,cos(rs[:10],tipus),css(col,96,24,16,50,38,170,110,54)),png); out.append((f'HISTÒRIA · {c["titol"]} {sub}',png))
     return out
 def generar_pichichi(outdir,ids=None):
@@ -72,7 +71,7 @@ def generar_pichichi(outdir,ids=None):
         nom,comp,rs=dades(tid,'scorers')
         if len(rs)<3: continue
         col='#ffd400' if comp=='COPA' else COLORS.get(comp,'#d60000'); sub=K.nom_curt(nom) if 'DIVISI' in nom.upper() else 'Copa F11 Veterans'
-        png=os.path.join(outdir,f'story_pichichi_{comp.lower().replace(" ","_")}.png')
+        png=P.nom_fitxer(outdir,'PICHICHI',[comp],P.avui_madrid(),None,'HISTORIA')
         P.render_story(P.story_shell('Pichichi',sub,cos(rs[:4],'scorers'),css(col,110,28,18,58,42,220,140,64)),png); out.append((f'HISTÒRIA · Pichichi {sub}',png))
     return out
 

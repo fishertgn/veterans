@@ -134,9 +134,9 @@ def generar_story(outdir,ids=None):
         if len(taules)>1:
             gs=sorted(taules,key=lambda x:x[0]); pags=[gs[i:i+2] for i in range(0,len(gs),2)]
             for i,p in enumerate(pags,1):
-                png=os.path.join(outdir,f'story_classificacio_copa_{i}.png'); P.render_story(html_story_copa(p,zones,i,len(pags)),png); out.append((f'Història classificació Copa {i}/{len(pags)}',png))
+                png=P.nom_fitxer(outdir,'CLASSIFICACIO',[comp],P.avui_madrid(),None,'HISTORIA',i,len(pags)); P.render_story(html_story_copa(p,zones,i,len(pags)),png); out.append((f'Història classificació Copa {i}/{len(pags)}',png))
         else:
-            png=os.path.join(outdir,f'story_classificacio_{comp.lower().replace(" ","_")}.png')
+            png=P.nom_fitxer(outdir,'CLASSIFICACIO',[comp],P.avui_madrid(),None,'HISTORIA')
             P.render_story(html_story_lliga(nom,taules[0][1],zones),png); out.append((f'Història classificació {nom_curt(nom)}',png))
     return out
 
@@ -149,9 +149,9 @@ def generar(outdir,ids=None):
         if len(taules)>1:
             gs=sorted(taules,key=lambda x:x[0]); pags=[gs[i:i+4] for i in range(0,len(gs),4)]
             for i,p in enumerate(pags,1):
-                png=os.path.join(outdir,f'classificacio_copa_{i}.png'); P.render(html_copa(p,zones,i,len(pags)),png); out.append((f'Classificació Copa {i}/{len(pags)}',png))
+                png=P.nom_fitxer(outdir,'CLASSIFICACIO',[comp],P.avui_madrid(),None,'POST',i,len(pags)); P.render(html_copa(p,zones,i,len(pags)),png); out.append((f'Classificació Copa {i}/{len(pags)}',png))
         else:
-            rs=taules[0][1]; png=os.path.join(outdir,f'classificacio_{comp.lower().replace(" ","_")}.png')
+            rs=taules[0][1]; png=P.nom_fitxer(outdir,'CLASSIFICACIO',[comp],P.avui_madrid(),None,'POST')
             P.render(html_lliga(nom,comp,rs,zones),png); out.append((f'Classificació {nom_curt(nom)}',png))
     return out
 
