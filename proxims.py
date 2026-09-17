@@ -103,6 +103,23 @@ body{{background:#f1f1f1;font-family:Barlow,sans-serif;color:#151515}}
 .ft{{position:absolute;right:44px;bottom:26px;font-weight:600;font-size:16px;letter-spacing:2px;color:#b5b5b5}}
 </style></head><body><div class="hd"><img src="{LOGO}"><div class="t">Pròxims partits</div><div class="d">{dia}</div>{pg}</div><div class="list">{rows}</div><div class="ft">@veteranstarragona</div></body></html>"""
 
+def post_shell(titol,sub,cos,css,pag=1,npag=1,peu=''):
+    """Carcassa comuna dels posts 1080x1350: capçalera vermella fixa de 200 px."""
+    pg=f'<span class="pg">{pag}/{npag}</span>' if npag>1 else ''
+    return f"""<!doctype html><html><head><meta charset="utf-8">{FONTS}<style>
+*{{margin:0;padding:0;box-sizing:border-box}}html,body{{width:1080px;height:1350px;overflow:hidden;position:relative}}img{{display:block}}
+body{{background:#f1f1f1;font-family:Barlow,sans-serif;color:#151515}}
+.hd{{position:absolute;left:0;top:0;width:1080px;height:200px;background:{RED};color:#fff}}
+.hd img{{position:absolute;left:44px;top:15px;width:170px;height:170px}}
+.hd .t{{position:absolute;left:236px;top:44px;font-family:'Barlow Condensed';font-weight:700;font-size:58px;letter-spacing:1px;line-height:1;text-transform:uppercase;color:#fff}}
+.hd .d{{position:absolute;left:238px;top:112px;font-family:'Barlow Condensed';font-weight:700;font-size:40px;letter-spacing:2px;color:#ffd6d6;text-transform:uppercase}}
+.hd .pg{{position:absolute;right:44px;top:70px;font-family:'Barlow Condensed';font-weight:700;font-size:40px;color:#fff;opacity:.8}}
+.cos{{position:absolute;left:40px;top:232px;width:1000px;display:flex;flex-direction:column;gap:10px}}
+.peu{{position:absolute;left:44px;bottom:26px;font-weight:600;font-size:14px;letter-spacing:1px;color:#9a9a9a}}
+.ft{{position:absolute;right:44px;bottom:26px;font-weight:600;font-size:16px;letter-spacing:2px;color:#b5b5b5}}
+{css}
+</style></head><body><div class="hd"><img src="{LOGO}"><div class="t">{titol}</div><div class="d">{sub}</div>{pg}</div><div class="cos">{cos}</div><div class="peu">{peu}</div><div class="ft">@veteranstarragona</div></body></html>"""
+
 def story_shell(titol,sub,cos,css,pag=1,npag=1):
     """Carcassa comuna de les històries 1080x1920: logo gran, títol, subtítol i full clar."""
     pg=f'<span class="pg">{pag}/{npag}</span>' if npag>1 else ''
