@@ -70,18 +70,18 @@ def hash_calendari(d0,d1):
     rows=P.partits(d0,d1,jugats=None)
     return hashlib.md5(json.dumps([(r['id'],r['startTime'] if 'startTime' in r else r['dt'].isoformat(),r['camp']) for r in rows],sort_keys=True).encode()).hexdigest()
 
-def divendres_calendari(avui):
-    """Si el calendari ha canviat des del dilluns, torna a enviar pròxims partits."""
-    e=estat(); clau='divendres_'+avui.isoformat()
+def proxims_setmana(avui):
+    """Dijous i divendres al matí: pròxims partits del cap de setmana (post + històries). Un cop per dia."""
+    e=estat(); clau='proxims_'+avui.isoformat()
     if clau in e['fets']: return
-    d0,d1=cap_de_setmana(avui); h=hash_calendari(d0,d1)
-    if h!=e.get('calendari_hash'):
-        envia_text('📅 El calendari del cap de setmana ha canviat des de dilluns. Versió actualitzada:')
-        for et,n,p in P.generar(d0,d1,OUT): envia_fitxer(p,f'Pròxims partits · {et} · {n} partits')
-        for et,n,p in P.generar_story(d0,d1,OUT): envia_fitxer(p,f'{et} · {n} partits')
-        e['calendari_hash']=h; log('divendres: calendari actualitzat enviat')
-    else: log('divendres: calendari sense canvis')
-    e['fets'][clau]=True; desa(e)
+    d0,d1=cap_de_setmana(avui); h=hash_calendari(d0,d1); dia=P.DIES[avui.weekday()].capitalize()
+    if avui.weekday()==4:
+        nota='⚠️ El calendari ha CANVIAT des d\'ahir. Fes servir aquesta versió.' if h!=e.get('calendari_hash') else 'Sense canvis des d\'ahir.'
+    else: nota='Primera versió de la setmana.'
+    envia_text(f'📅 {dia} · Pròxims partits del cap de setmana {d0.day}-{d1.day} {P.MES[d1.month-1]}. {nota}')
+    for et,n,p in P.generar(d0,d1,OUT): envia_fitxer(p,f'Pròxims partits · {et} · {n} partits')
+    for et,n,p in P.generar_story(d0,d1,OUT): envia_fitxer(p,f'{et} · {n} partits')
+    e['calendari_hash']=h; e['fets'][clau]=True; desa(e); log('proxims enviat',dia)
 
 def main():
     from zoneinfo import ZoneInfo
@@ -93,8 +93,9 @@ def main():
             ok=envia_fitxer(historia_resultat(r),'✅ Prova del publicador automàtic (GitHub Actions)'); log('PROVA enviada',ok); return
         if '--ara' in sys.argv: return comprova_resultats(avui)
         if '--dilluns' in sys.argv: return paquet_dilluns(avui)
+        if '--proxims' in sys.argv: return proxims_setmana(avui)
         if wd==0 and 9<=h<=13: paquet_dilluns(avui)      # tolera retards del programador; l'estat evita repetir
-        elif wd==4 and 17<=h<=21: divendres_calendari(avui)
+        elif wd in (3,4) and 10<=h<=13: proxims_setmana(avui)
         elif (wd==4 and h>=22) or (wd==5 and 14<=h<=23) or (wd==6 and 9<=h<=18): comprova_resultats(avui)
         else: log('fora d\'horari, res a fer')
     except Exception as ex:

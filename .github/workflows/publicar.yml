@@ -2,14 +2,15 @@ name: Publicador Veterans Tarragona
 on:
   schedule:
     # Hores en UTC. Cobreixen l'horari d'estiu (+2) i el d'hivern (+1); el script decideix amb l'hora de Madrid.
-    - cron: '5 15-22 * * 5'   # divendres 17h (calendari) i 22h+ (resultats)
+    - cron: '5 8-10 * * 4'    # dijous 10h: pròxims partits
+    - cron: '5 8-10,20-22 * * 5'   # divendres 10h (pròxims partits) i 22h+ (resultats)
     - cron: '5 12-22 * * 6'   # dissabte 14-23h
     - cron: '5 7-17 * * 0'    # diumenge 9-18h
     - cron: '5 7-11 * * 1'    # dilluns 9h (paquet setmanal), amb marge per retards
   workflow_dispatch:
     inputs:
       mode:
-        description: 'programat | ara (resultats) | dilluns (paquet sencer) | prova'
+        description: 'programat | ara (resultats) | proxims | dilluns (paquet sencer) | prova'
         default: 'prova'
 permissions:
   contents: write
@@ -31,6 +32,7 @@ jobs:
           case "$MODE" in
             ara) python publicar.py --ara ;;
             dilluns) python publicar.py --dilluns ;;
+            proxims) python publicar.py --proxims ;;
             prova) touch PROVA && python publicar.py ;;
             *) python publicar.py ;;
           esac
