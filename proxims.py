@@ -39,7 +39,11 @@ def nice(n):
     n=' '.join(n.split()).title()
     for a,b in (('Cf ','CF '),('Ce ','CE '),('Ue ','UE '),('Cd ','CD '),('Fc','FC'),('Cfb','CFB'),('Ucf','UCF'),('Cfv','CFV'),('Aev','AEV'),('Cef','CEF'),('Vet.','Vet. '),('P.Barça','P. Barça')):
         n=n.replace(a,b)
-    return ' '.join(n.split())
+    n=' '.join(n.split())
+    n=n.replace('Vila-Seca','Vila-seca').replace('Mont-Roig','Mont-roig')   # topònims oficials
+    for w in ('De','Del','Dels','I'):   # PARTICULES en minúscula: Ametlla de Mar, Sant Pere i Sant Pau
+        n=re.sub(rf'(?<=\s){w}(?=\s)',w.lower(),n)
+    return n
 
 def curt(name):
     """Nom curt de la competició per a l'etiqueta."""

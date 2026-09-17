@@ -16,12 +16,16 @@ def zona_de(pos,zones):
     for a,b,t in zones:
         if a<=pos<=b: return zona(t)
     return None
+COPES=("Copa Or","Copa Plata","Copa Bronze","Consolació")
+def _titol_zona(zz,t):
+    if zz[2] in COPES: return zz[2]
+    return t.title().replace("Catalunta","Catalunya").replace("2ªdivisió","2ª Divisió")
 def llegenda(zones,tag='span'):
     vist=[]; out=''
     for a,b,t in zones:
         zz=zona(t)
         if zz[2] in vist: continue
-        vist.append(zz[2]); out+=f'<{tag} class="lg"><i style="background:{zz[1]}"></i>{zz[2] if zz[2] in ("Copa Or","Copa Plata","Copa Bronze","Consolació") else t.title()}</{tag}>'
+        vist.append(zz[2]); out+=f'<{tag} class="lg"><i style="background:{zz[1]}"></i>{_titol_zona(zz,t)}</{tag}>'
     return out
 
 def dades(tid):
@@ -61,11 +65,7 @@ def html_lliga(nom,comp,rs,zones):
     for i,r in enumerate(rs):
         zz=z(i+1); bg=f'background:{zz[0]}' if zz else ''; posc=f'background:{zz[1]};color:#fff' if zz else ''
         rows+=f'<div class="r" style="{bg}"><b class="pos" style="{posc}">{i+1}</b><img src="{r["lg"]}"><span class="n">{r["n"]}</span><span>{r["pj"]}</span><span>{r["g"]}</span><span>{r["e"]}</span><span>{r["p"]}</span><span>{r["gf"]}</span><span>{r["gc"]}</span><span class="dg">{r["dg"]:+d}</span>{forma(r["forma"])}<b class="pts">{r["pts"]}</b></div>'
-    vist=[]; leg=''
-    for a,b,t in zones:
-        zz=zona(t)
-        if zz[2] in vist: continue
-        vist.append(zz[2]); leg+=f'<span class="lg"><i style="background:{zz[1]}"></i>{t.title()}</span>'
+    leg=llegenda(zones)
     return page(f""".tb{{position:absolute;left:40px;top:232px;width:1000px;background:#fff;border-radius:14px;border-left:10px solid {col};box-shadow:0 2px 8px rgba(0,0,0,.05);overflow:hidden}}
 .th,.r{{display:grid;grid-template-columns:48px 42px 1fr 44px 40px 40px 40px 46px 46px 56px 104px 74px;align-items:center;gap:5px;padding:0 14px 0 8px;height:72px}}
 .th{{height:48px;font-weight:700;font-size:13px;letter-spacing:1.5px;color:#9a9a9a;text-transform:uppercase;border-bottom:2px solid #eee}}.th span,.r>span{{text-align:center}}.th .n,.r .n{{text-align:left}}
@@ -101,7 +101,8 @@ def html_copa(gs,zones,pag,npag):
 
 CSS_STORY_K=""".th,.r{display:grid;grid-template-columns:54px 52px 1fr 56px 64px 112px 84px;align-items:center;gap:8px;padding:0 14px 0 10px}
 .th{height:30px;flex:none;font-weight:700;font-size:15px;letter-spacing:2px;color:#9a9a9a;text-transform:uppercase}.th span{text-align:center}.th .n{text-align:left}
-.r{height:80px;flex:none;background:#fff;border-radius:12px;box-shadow:0 2px 6px rgba(0,0,0,.05);font-weight:500;font-size:24px}.r>span{text-align:center}
+.sheet{gap:8px}
+.r{height:76px;flex:none;background:#fff;border-radius:12px;box-shadow:0 2px 6px rgba(0,0,0,.05);font-weight:500;font-size:24px}.r>span{text-align:center}
 .r img{width:46px;height:46px;object-fit:contain}.r .n{text-align:left;font-weight:600;font-size:24px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pos{font-family:'Barlow Condensed';font-weight:700;font-size:30px;width:44px;height:44px;border-radius:9px;display:flex;align-items:center;justify-content:center}
 .fm{display:flex;gap:5px;justify-content:center}.fm i{width:14px;height:14px;border-radius:50%;display:block}
@@ -114,18 +115,8 @@ def _fila_story(i,r,zz):
     return f'<div class="r" style="{bg}"><b class="pos" style="{posc}">{i+1}</b><img src="{r["lg"]}"><span class="n">{r["n"]}</span><span>{r["pj"]}</span><span class="dg">{r["dg"]:+d}</span>{forma(r["forma"])}<b class="pts">{r["pts"]}</b></div>'
 
 def html_story_lliga(nom,rs,zones):
-    def z(pos):
-        for a,b,t in zones:
-            if a<=pos<=b: return zona(t)
-        return None
-    rows=''.join(_fila_story(i,r,z(i+1)) for i,r in enumerate(rs))
-    vist=[]; leg=''
-    for a,b,t in zones:
-        zz=zona(t)
-        if zz[2] in vist: continue
-        vist.append(zz[2]); leg+=f'<span><i style="background:{zz[1]}"></i>{t.title()}</span>'
-    css=CSS_STORY_K+('.sheet{gap:7px;padding:16px 20px}.r{height:76px}' if len(rs)>13 else '')
-    return P.story_shell('Classificació',nom_curt(nom),TH+rows+(f'<div class="leg">{leg}</div>' if leg else ''),css)
+    rows=''.join(_fila_story(i,r,zona_de(i+1,zones)) for i,r in enumerate(rs)); leg=llegenda(zones)
+    return P.story_shell('Classificació',nom_curt(nom),TH+rows+(f'<div class="leg">{leg}</div>' if leg else ''),CSS_STORY_K)
 
 def html_story_copa(gs,zones,pag,npag):
     cos=''
