@@ -113,6 +113,9 @@ def proxims_setmana(avui):
     for et,n,p in P.generar_story(d0,d1,OUT): envia_fitxer(p,f'{et} · {n} partits','proxims')
     envia_peu(PE.proxims(P.partits(d0,d1,jugats=False)),'proxims','post de pròxims partits')
     if avui.weekday()==3:
+        try:
+            for et,p in RL.generar(d0,d1,OUT,tipus='proxims'): envia_fitxer(p,et,'reels')
+        except Exception as ex: log('reel proxims ERROR',ex)
         for et,p in G.generar_pichichi(OUT): envia_fitxer(p,et,'golejadors')
         res,pj,info=PJ.generar(d0,d1,OUT)
         for et,p in res: envia_fitxer(p,et,'partit')

@@ -12,7 +12,7 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: 'programat | ara | proxims | partit | mensual | reel (prova) | dilluns | prova'
+        description: 'programat | ara | proxims | reelproxims | partit | mensual | reel (prova) | dilluns | prova'
         default: 'prova'
 permissions:
   contents: write
@@ -29,7 +29,7 @@ jobs:
         env:
           MODE: ${{ github.event.inputs.mode || 'programat' }}
         run: |
-          if [ "$(date -u +%u)" = "1" ] || [ "$MODE" = "reel" ] || [ "$MODE" = "dilluns" ]; then
+          if [ "$(date -u +%u)" = "1" ] || [ "$(date -u +%u)" = "4" ] || [ "$MODE" = "reel" ] || [ "$MODE" = "reelproxims" ] || [ "$MODE" = "dilluns" ]; then
             command -v ffmpeg >/dev/null || (sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg)
           fi
       - name: Executar publicador
@@ -44,7 +44,8 @@ jobs:
             proxims) python publicar.py --proxims ;;
             partit) python publicar.py --partit ;;
             mensual) python publicar.py --mensual ;;
-            reel) python reel.py 2026-09-26 2026-09-27 --test --send ;;
+            reel) python reel.py resultats 2026-09-26 2026-09-27 --test --send ;;
+            reelproxims) python reel.py proxims --send ;;
             prova) touch PROVA && python publicar.py ;;
             *) python publicar.py ;;
           esac
