@@ -119,6 +119,15 @@ def proxims_setmana(avui):
         if pj: envia_peu(PE.partit(pj,info),'partit','partit de la jornada')
     e['calendari_hash']=h; e['fets'][clau]=True; desa(e); log('proxims enviat',dia)
 
+def resum_mensual(avui):
+    """Primer dilluns de cada mes: resum del mes anterior."""
+    e=estat(); ant=(avui.replace(day=1)-datetime.timedelta(days=1)); clau=f'mensual_{ant.year}-{ant.month:02d}'
+    if clau in e['fets']: return
+    res,d=MS.generar(ant.year,ant.month,OUT)
+    for et,p in res: envia_fitxer(p,et,'mensual')
+    if d: envia_peu(MS.peu(d,ant.year,ant.month),'mensual','resum mensual')
+    e['fets'][clau]=True; desa(e); log('mensual',clau,'enviat' if res else 'sense prou partits')
+
 def main():
     from zoneinfo import ZoneInfo
     ara=datetime.datetime.now(ZoneInfo('Europe/Madrid')).replace(tzinfo=None); avui=ara.date(); wd=ara.weekday(); h=ara.hour
@@ -130,12 +139,15 @@ def main():
         if '--ara' in sys.argv: return comprova_resultats(avui)
         if '--dilluns' in sys.argv: return paquet_dilluns(avui)
         if '--proxims' in sys.argv: return proxims_setmana(avui)
+        if '--mensual' in sys.argv: return resum_mensual(avui)
         if '--partit' in sys.argv:
             d0,d1=cap_de_setmana(avui); res,pj,info=PJ.generar(d0,d1,OUT)
             for et,p in res: envia_fitxer(p,et,'partit')
             if pj: envia_peu(PE.partit(pj,info),'partit','partit de la jornada')
             return
-        if wd==0 and 9<=h<=13: paquet_dilluns(avui)      # tolera retards del programador; l'estat evita repetir
+        if wd==0 and 9<=h<=13:
+            paquet_dilluns(avui)
+            if avui.day<=7: resum_mensual(avui)      # tolera retards del programador; l'estat evita repetir
         elif wd in (3,4) and 10<=h<=13: proxims_setmana(avui)
         elif (wd==4 and h>=22) or (wd==5 and 14<=h<=23) or (wd==6 and 9<=h<=18): comprova_resultats(avui)
         else: log('fora d\'horari, res a fer')

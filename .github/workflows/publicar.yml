@@ -12,7 +12,7 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: 'programat | ara | proxims | partit | reel (prova) | dilluns | prova'
+        description: 'programat | ara | proxims | partit | mensual | reel (prova) | dilluns | prova'
         default: 'prova'
 permissions:
   contents: write
@@ -43,6 +43,7 @@ jobs:
             dilluns) python publicar.py --dilluns ;;
             proxims) python publicar.py --proxims ;;
             partit) python publicar.py --partit ;;
+            mensual) python publicar.py --mensual ;;
             reel) python reel.py 2026-09-26 2026-09-27 --test --send ;;
             prova) touch PROVA && python publicar.py ;;
             *) python publicar.py ;;
