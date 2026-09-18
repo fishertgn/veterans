@@ -50,13 +50,13 @@ def injecta_patrocinador(html,h):
     marca=f'<img src="file://{lg}">' if s.get('logo') and os.path.exists(lg) else f'<b>{s["nom"]}</b>'
     base=".patro{position:absolute;background:#fff;color:#151515;display:flex;align-items:center;justify-content:center;font-family:Barlow,sans-serif;z-index:5}.patro small{font-weight:700;letter-spacing:3px;color:#9a9a9a;text-transform:uppercase;white-space:nowrap}.patro b{font-family:'Barlow Condensed';font-weight:700;letter-spacing:1px;text-transform:uppercase;white-space:nowrap}.patro img{object-fit:contain;display:block}"
     if h==1350:
-        css=base+".patro{right:44px;top:40px;height:120px;min-width:210px;max-width:330px;padding:10px 24px;border-radius:16px;flex-direction:column;gap:6px}.patro small{font-size:13px}.patro b{font-size:32px}.patro img{max-height:62px;max-width:260px}.hd .pg{top:auto!important;bottom:4px!important;right:48px!important;font-size:28px!important}"
+        css=base+".patro{right:44px;top:40px;height:120px;min-width:210px;max-width:330px;padding:10px 24px;border-radius:16px;flex-direction:column;gap:6px}.patro small{font-size:13px}.patro b{font-size:32px}.patro img{max-height:74px;max-width:290px}.patro{height:128px!important;top:36px!important;gap:4px!important}.hd .pg{top:auto!important;bottom:4px!important;right:48px!important;font-size:28px!important}"
         bloc=f'<div class="patro"><small>Patrocina</small>{marca}</div>'
     elif 'class="tk"' in html:
-        css=base+".patro{left:50%;transform:translateX(-50%);top:1766px;height:70px;padding:0 34px;border-radius:999px;gap:16px;background:#f1f1f1;font-family:'Space Grotesk',sans-serif}.patro small{font-size:15px;white-space:nowrap}.patro b{font-family:Anton,'Space Grotesk',sans-serif;font-weight:400;font-size:30px;letter-spacing:2px}.patro img{max-height:44px;max-width:240px}"
+        css=base+".patro{left:50%;transform:translateX(-50%);top:1756px;height:84px;padding:0 36px;border-radius:999px;gap:16px;background:#f1f1f1;font-family:'Space Grotesk',sans-serif}.patro small{font-size:15px;white-space:nowrap}.patro b{font-family:Anton,'Space Grotesk',sans-serif;font-weight:400;font-size:30px;letter-spacing:2px}.patro img{max-height:62px;max-width:260px}"
         bloc=f'<div class="patro"><small>Patrocinat per</small>{marca}</div>'
     else:
-        css=base+".logo{width:250px!important;height:250px!important;top:22px!important}.tt{top:280px!important}.dd{top:360px!important}.patro{left:50%;transform:translateX(-50%);top:426px;height:70px;padding:0 32px;border-radius:999px;gap:14px}.patro small{font-size:15px}.patro b{font-size:32px}.patro img{max-height:44px;max-width:240px}"
+        css=base+".logo{width:250px!important;height:250px!important;top:22px!important}.tt{top:280px!important}.dd{top:360px!important}.patro{left:50%;transform:translateX(-50%);top:418px;height:88px;padding:0 36px;border-radius:999px;gap:16px}.patro small{font-size:15px}.patro b{font-size:32px}.patro img{max-height:64px;max-width:260px}"
         bloc=f'<div class="patro"><small>Patrocinat per</small>{marca}</div>'
     return html.replace('</body>',f'<style>{css}</style>{bloc}</body>')
 
