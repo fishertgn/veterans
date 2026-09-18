@@ -12,7 +12,7 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: 'programat | ara | proxims | reelproxims | partit | mensual | reel (prova) | dilluns | prova'
+        description: 'programat | igcheck | ara | proxims | reelproxims | partit | mensual | reel (prova) | dilluns | prova'
         default: 'prova'
 permissions:
   contents: write
@@ -36,6 +36,7 @@ jobs:
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          INSTAGRAM_TOKEN: ${{ secrets.INSTAGRAM_TOKEN }}
           MODE: ${{ github.event.inputs.mode || 'programat' }}
         run: |
           case "$MODE" in
@@ -44,6 +45,7 @@ jobs:
             proxims) python publicar.py --proxims ;;
             partit) python publicar.py --partit ;;
             mensual) python publicar.py --mensual ;;
+            igcheck) python instagram.py check ;;
             reel) python reel.py resultats 2026-09-26 2026-09-27 --test --send ;;
             reelproxims) python reel.py proxims --send ;;
             prova) touch PROVA && python publicar.py ;;
