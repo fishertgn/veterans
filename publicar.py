@@ -158,7 +158,7 @@ def main():
             if avui.day<=7: resum_mensual(avui)      # tolera retards del programador; l'estat evita repetir
         elif wd in (3,4) and 10<=h<=13: proxims_setmana(avui)
         elif (wd==4 and h>=22) or (wd==5 and 14<=h<=23) or (wd==6 and 9<=h<=18): comprova_resultats(avui)
-        else: log('fora d\'horari, res a fer')
+        else: print('fora d\'horari, res a fer')      # sense escriure al registre: amb el disparador extern s'executa cada mitja hora
     except Exception as ex:
         log('ERROR',traceback.format_exc()); envia_text(f'⚠️ Error al publicador: {ex}')
 if __name__=='__main__': main()

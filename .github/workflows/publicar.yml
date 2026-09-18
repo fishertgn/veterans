@@ -12,7 +12,7 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: 'programat | igcheck | ighistoria (PUBLICA una història real) | ara | proxims | reelproxims | partit | mensual | reel (prova) | dilluns | prova'
+        description: 'programat | igcheck | ighistoria (PUBLICA les històries de pròxims partits pendents) | ara | proxims | reelproxims | partit | mensual | reel (prova) | dilluns | prova'
         default: 'prova'
 permissions:
   contents: write

@@ -83,9 +83,13 @@ if __name__=='__main__':
         import datetime, publicar as U, proxims as P
         d0,d1=U.cap_de_setmana(P.avui_madrid())
         if not P.partits(d0,d1,jugats=False): d0,d1=d0+datetime.timedelta(days=7),d1+datetime.timedelta(days=7)
-        res=P.generar_story(d0,d1,U.OUT)
-        try: mid=historia(res[0][2]); U.envia_text(f'✅ Història de prova publicada a Instagram ({res[0][0]}). Id {mid}. Mira el perfil.','sistema'); print('ok',mid)
-        except Exception as e: U.envia_text(f'⚠️ Instagram: no s\'ha pogut publicar la història de prova → {e}','sistema'); print('ERROR',e)
+        res=P.generar_story(d0,d1,U.OUT); e=U.estat(); fetes=e.setdefault('ig_proxims',[]); n=0
+        for et,_,png in res:
+            clau=f'{d0.isoformat()}·{et}'
+            if clau in fetes: continue
+            try: mid=historia(png); fetes.append(clau); U.desa(e); n+=1; U.envia_text(f'✅ Publicada a Instagram: {et}. Id {mid}.','sistema'); print('ok',et)
+            except Exception as ex: U.envia_text(f'⚠️ Instagram: no s\'ha pogut publicar {et} → {ex}','sistema'); print('ERROR',ex)
+        if not n: U.envia_text('ℹ️ Instagram: totes les històries de pròxims partits d\'aquest cap de setmana ja estaven publicades.','sistema')
     elif sys.argv[1:]==['check']:
         import publicar as U
         try:
