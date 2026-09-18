@@ -2,11 +2,13 @@ name: Publicador Veterans Tarragona
 on:
   schedule:
     # Hores en UTC. Cobreixen l'horari d'estiu (+2) i el d'hivern (+1); el script decideix amb l'hora de Madrid.
-    - cron: '5 8-10 * * 4'    # dijous 10h: pròxims partits
-    - cron: '5 8-10,20-22 * * 5'   # divendres 10h (pròxims partits) i 22h+ (resultats)
-    - cron: '5 12-22 * * 6'   # dissabte 14-23h
-    - cron: '5 7-17 * * 0'    # diumenge 9-18h
-    - cron: '5 7-11 * * 1'    # dilluns 9h (paquet setmanal), amb marge per retards
+    # Minuts 23 i 53: GitHub retarda o descarta les execucions programades a l'hora en punt. Dues per hora
+    # donen marge; el publicador recorda què ha enviat i no repeteix res.
+    - cron: '23,53 8-10 * * 4'    # dijous 10h: pròxims partits
+    - cron: '23,53 8-10,20-22 * * 5'   # divendres 10h (pròxims partits) i 22h+ (resultats)
+    - cron: '23,53 12-22 * * 6'   # dissabte 14-23h
+    - cron: '23,53 7-17 * * 0'    # diumenge 9-18h
+    - cron: '23,53 7-11 * * 1'    # dilluns 9h (paquet setmanal), amb marge per retards
   workflow_dispatch:
     inputs:
       mode:
