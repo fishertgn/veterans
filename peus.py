@@ -51,7 +51,7 @@ def classificacio(nom,taules):
         t.append('')
     return _tanca('\n'.join(t),noms,'Taula completa a la imatge 👆')
 def golejadors(nom,rs,tipus):
-    cap='⚽ GOLEJADORS' if tipus=='scorers' else '🧤 PORTERS MENYS GOLEJATS'; u='gols' if tipus=='scorers' else 'encaixats'
+    cap,u={'scorers':('⚽ GOLEJADORS','gols'),'goalkeepers':('🧤 PORTERS MENYS GOLEJATS','encaixats'),'assistances':('🎯 ASSISTÈNCIES','assistències'),'mvps':('⭐ JUGADOR MÉS VALUÓS','vegades MVP')}[tipus]
     t=[f'{cap} · {nom}','']+[f"{i}. {r['j']} ({r['eq']}) · {r['v']} {u}" for i,r in enumerate(rs[:5],1)]
     return _tanca('\n'.join(t),[r['eq'] for r in rs[:5]])
 def partit(r,info=''):

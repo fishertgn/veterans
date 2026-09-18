@@ -22,15 +22,20 @@ def dades(tid,tipus):
     for r in rows:
         tm=teams.get(r['idTeam'])
         if not tm or not r.get('gamesPlayed'): continue
-        if tipus=='scorers':
+        if tipus in ('assistances','mvps'):
+            v=r.get('assistances' if tipus=='assistances' else 'mvpPoints') or 0
+            if v<=0: continue
+            out.append(dict(j=nom_jugador(r.get('playerName'),r.get('playerSurname')),eq=P.nice(tm['name']),lg=UP+tm['logoImgUrl'],pj=r['gamesPlayed'],v=v,ratio=v/r['gamesPlayed']))
+        elif tipus=='scorers':
             if r['points']<=0: continue
             out.append(dict(j=nom_jugador(r.get('playerName'),r.get('playerSurname')),eq=P.nice(tm['name']),lg=UP+tm['logoImgUrl'],pj=r['gamesPlayed'],v=r['points'],ratio=r['points']/r['gamesPlayed']))
         else:
             out.append(dict(j=nom_jugador(r.get('playerName'),r.get('playerSurname')),eq=P.nice(tm['name']),lg=UP+tm['logoImgUrl'],pj=r['gamesPlayed'],v=r['pointsAgainst'],ratio=r['pointsAgainst']/r['gamesPlayed']))
-    out.sort(key=(lambda r:(-r['v'],r['pj'])) if tipus=='scorers' else (lambda r:(r['ratio'],-r['pj'])))
+    out.sort(key=(lambda r:(r['ratio'],-r['pj'])) if tipus=='goalkeepers' else (lambda r:(-r['v'],r['pj'])))
     return t['name'],P.curt(t['name']),out
 
-CFG={'scorers':dict(titol='Golejadors',tag='PICHICHI',unitat='gols',col='GOLS'),'goalkeepers':dict(titol='Porters',tag='ZAMORA',unitat='encaixats',col='ENC.')}
+CFG={'scorers':dict(titol='Golejadors',tag='PICHICHI',unitat='gols',col='GOLS'),'goalkeepers':dict(titol='Porters',tag='ZAMORA',unitat='encaixats',col='ENC.'),
+     'assistances':dict(titol='Assistències',tag='MÀXIM ASSISTENT',unitat='assistències',col='ASS.'),'mvps':dict(titol='Jugador més valuós',tag='MVP',unitat='vegades MVP',col='MVP')}
 def css(col,h_row,f_nom,f_eq,esc,f_v,h_hero,esc_h,f_h):
     return f""".hero{{height:{h_hero}px;flex:none;background:#151515;color:#fff;border-radius:14px;border-left:12px solid {col};display:grid;grid-template-columns:{esc_h+20}px 1fr auto;align-items:center;gap:18px;padding:0 26px 0 20px}}
 .hero img{{width:{esc_h}px;height:{esc_h}px;object-fit:contain;background:#fff;border-radius:50%;padding:6px}}
@@ -53,15 +58,15 @@ def cos(rs,tipus):
 def generar(outdir,ids=None,stories=True):
     out=[]; ts=[t['id'] for t in P.competicions()] if ids is None else ids
     for tid in ts:
-        for tipus in ('scorers','goalkeepers'):
+        for tipus in ('scorers','goalkeepers','assistances','mvps'):
             nom,comp,rs=dades(tid,tipus)
             if len(rs)<3: continue
             col=COLORS.get(comp,'#d60000'); col='#ffd400' if comp=='COPA' else col; sub=K.nom_curt(nom) if 'DIVISI' in nom.upper() else 'Copa F11 Veterans'; c=CFG[tipus]
-            png=P.nom_fitxer(outdir,c['titol'].upper(),[comp],P.avui_madrid(),None,'POST'); tmp=png[:-4]+'.html'
+            png=P.nom_fitxer(outdir,{'scorers':'GOLEJADORS','goalkeepers':'PORTERS','assistances':'ASSISTENCIES','mvps':'MVP'}[tipus],[comp],P.avui_madrid(),None,'POST'); tmp=png[:-4]+'.html'
             open(tmp,'w').write(P.post_shell(c['titol'],sub,cos(rs[:10],tipus),css(col,82,20,14,44,34,150,96,48),peu='Dades oficials de Minifutbol Tarragonès'))
             P.captura(tmp,png,1080,1350); out.append((f'POST · {c["titol"]} {sub}',png))
             if stories:
-                png=P.nom_fitxer(outdir,c['titol'].upper(),[comp],P.avui_madrid(),None,'HISTORIA')
+                png=P.nom_fitxer(outdir,{'scorers':'GOLEJADORS','goalkeepers':'PORTERS','assistances':'ASSISTENCIES','mvps':'MVP'}[tipus],[comp],P.avui_madrid(),None,'HISTORIA')
                 P.render_story(P.story_shell(c['titol'],sub,cos(rs[:10],tipus),css(col,96,24,16,50,38,170,110,54)),png); out.append((f'HISTÒRIA · {c["titol"]} {sub}',png))
     return out
 def generar_pichichi(outdir,ids=None):

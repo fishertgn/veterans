@@ -82,9 +82,9 @@ def paquet_dilluns(avui):
         if taules: envia_peu(PE.classificacio(K.nom_curt(nom) if 'DIVISI' in nom.upper() else 'Copa F11 Veterans',sorted(taules,key=lambda x:x[0])),'classificacio','classificació '+comp)
     for et,p in G.generar(OUT): envia_fitxer(p,et,'golejadors')      # pichichi i Zamora (si ja hi ha dades)
     for t in P.competicions():
-        for tipus in ('scorers','goalkeepers'):
+        for tipus in ('scorers','goalkeepers','assistances','mvps'):
             nom,comp,rs=G.dades(t['id'],tipus)
-            if len(rs)>=3: envia_peu(PE.golejadors(K.nom_curt(nom) if 'DIVISI' in nom.upper() else 'Copa F11 Veterans',rs,tipus),'golejadors',('golejadors ' if tipus=='scorers' else 'porters ')+comp)
+            if len(rs)>=3: envia_peu(PE.golejadors(K.nom_curt(nom) if 'DIVISI' in nom.upper() else 'Copa F11 Veterans',rs,tipus),'golejadors',G.CFG[tipus]['titol'].lower()+' '+comp)
     try:
         for et,p in RL.generar(d0,d1,OUT): envia_fitxer(p,et,'reels')
     except Exception as ex: log('reel ERROR',ex)
