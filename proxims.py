@@ -33,8 +33,39 @@ def nom_fitxer(outdir,titol,comps,d0,d1=None,format='POST',pag=1,npag=1):
     parts=[titol,tag,data_fitxer(d0,d1),format]+([f'{pag}de{npag}'] if npag>1 else [])
     nom=' '.join(x for x in parts if x)
     return os.path.join(outdir,re.sub(r'[\\/:*?"<>|;,]','',nom)+'.png')
+def patrocinador():
+    """patrocinador.json = {"actiu": true, "nom": "Bar X", "logo": "patrocinador.png"} (logo opcional, dins la carpeta)."""
+    if os.environ.get('VETERANS_PATRO_DEMO'): return {'nom':'EL TEU NEGOCI AQUÍ','logo':''}
+    try:
+        d=json.load(open(os.path.join(V,'patrocinador.json')))
+        return d if d.get('actiu') and d.get('nom') else None
+    except Exception: return None
+
+def injecta_patrocinador(html,h):
+    """Afegeix el patrocinador sense tocar les plantilles. Post: píndola a la dreta de la capçalera.
+    Història: franja sota el subtítol (el logo s'encongeix una mica). Tiquet de resultat: al peu de la targeta."""
+    s=patrocinador()
+    if not s or 'class="patro"' in html: return html
+    lg=os.path.join(V,s.get('logo') or '')
+    marca=f'<img src="file://{lg}">' if s.get('logo') and os.path.exists(lg) else f'<b>{s["nom"]}</b>'
+    base=".patro{position:absolute;background:#fff;color:#151515;display:flex;align-items:center;justify-content:center;font-family:Barlow,sans-serif;z-index:5}.patro small{font-weight:700;letter-spacing:3px;color:#9a9a9a;text-transform:uppercase;white-space:nowrap}.patro b{font-family:'Barlow Condensed';font-weight:700;letter-spacing:1px;text-transform:uppercase;white-space:nowrap}.patro img{object-fit:contain;display:block}"
+    if h==1350:
+        css=base+".patro{right:44px;top:40px;height:120px;min-width:210px;max-width:330px;padding:10px 24px;border-radius:16px;flex-direction:column;gap:6px}.patro small{font-size:13px}.patro b{font-size:32px}.patro img{max-height:62px;max-width:260px}.hd .pg{top:auto!important;bottom:4px!important;right:48px!important;font-size:28px!important}"
+        bloc=f'<div class="patro"><small>Patrocina</small>{marca}</div>'
+    elif 'class="tk"' in html:
+        css=base+".patro{left:50%;transform:translateX(-50%);top:1766px;height:70px;padding:0 34px;border-radius:999px;gap:16px;background:#f1f1f1;font-family:'Space Grotesk',sans-serif}.patro small{font-size:15px;white-space:nowrap}.patro b{font-family:Anton,'Space Grotesk',sans-serif;font-weight:400;font-size:30px;letter-spacing:2px}.patro img{max-height:44px;max-width:240px}"
+        bloc=f'<div class="patro"><small>Patrocinat per</small>{marca}</div>'
+    else:
+        css=base+".logo{width:250px!important;height:250px!important;top:22px!important}.tt{top:280px!important}.dd{top:360px!important}.patro{left:50%;transform:translateX(-50%);top:426px;height:70px;padding:0 32px;border-radius:999px;gap:14px}.patro small{font-size:15px}.patro b{font-size:32px}.patro img{max-height:44px;max-width:240px}"
+        bloc=f'<div class="patro"><small>Patrocinat per</small>{marca}</div>'
+    return html.replace('</body>',f'<style>{css}</style>{bloc}</body>')
+
 def captura(html_path,png,w,h,budget=20000):
     import urllib.parse
+    try:
+        _h=open(html_path,encoding='utf-8').read(); _n=injecta_patrocinador(_h,h)
+        if _n!=_h: open(html_path,'w',encoding='utf-8').write(_n)
+    except Exception: pass
     subprocess.run([CHROME]+CHROME_FLAGS+[f'--window-size={w},{h}',f'--virtual-time-budget={budget}',f'--screenshot={png}','file://'+urllib.parse.quote(html_path)],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
     return png
 DIES=['DILLUNS','DIMARTS','DIMECRES','DIJOUS','DIVENDRES','DISSABTE','DIUMENGE']; MES=['GEN','FEB','MAR','ABR','MAI','JUN','JUL','AGO','SET','OCT','NOV','DES']

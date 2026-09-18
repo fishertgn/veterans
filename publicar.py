@@ -87,6 +87,9 @@ def proxims_setmana(avui):
     e=estat(); clau='proxims_'+avui.isoformat()
     if clau in e['fets']: return
     d0,d1=cap_de_setmana(avui); h=hash_calendari(d0,d1); dia=P.DIES[avui.weekday()].capitalize()
+    if not P.partits(d0,d1,jugats=None):
+        envia_text(f'ℹ️ {dia}: no hi ha partits programats el cap de setmana {d0.day}-{d1.day} {P.MES[d1.month-1]}. No s\'envia res.','sistema')
+        e['fets'][clau]=True; desa(e); log('proxims: cap partit'); return
     if avui.weekday()==4:
         nota='⚠️ El calendari ha CANVIAT des d\'ahir. Fes servir aquesta versió.' if h!=e.get('calendari_hash') else 'Sense canvis des d\'ahir.'
     else: nota='Primera versió de la setmana.'
