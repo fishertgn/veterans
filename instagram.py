@@ -41,8 +41,52 @@ def publica_carrusel(uid,urls,peu=''):
         c=crida(f'{uid}/media',{'image_url':u,'is_carousel_item':'true'},post=True)['id']; _espera(c); fills.append(c)
     cid=crida(f'{uid}/media',{'media_type':'CAROUSEL','children':','.join(fills),'caption':peu},post=True)['id']; _espera(cid)
     return crida(f'{uid}/media_publish',{'creation_id':cid},post=True)['id']
+# ---- del PNG a una URL pública: JPEG dins pub/ del repositori (públic) ----
+import subprocess, hashlib, shutil
+V=os.path.dirname(os.path.abspath(__file__))
+def auto(clau):
+    try: return bool(json.load(open(os.path.join(V,'ig_auto.json'))).get(clau)) and bool(os.environ.get('INSTAGRAM_TOKEN'))
+    except Exception: return False
+def a_jpeg(png):
+    os.makedirs(os.path.join(V,'pub'),exist_ok=True)
+    jpg=os.path.join(V,'pub',hashlib.md5((png+str(os.path.getmtime(png))).encode()).hexdigest()[:16]+'.jpg')
+    try:
+        from PIL import Image
+        Image.open(png).convert('RGB').save(jpg,'JPEG',quality=92)
+    except ImportError:
+        if shutil.which('sips'): subprocess.run(['sips','-s','format','jpeg','-s','formatOptions','92',png,'--out',jpg],stdout=subprocess.DEVNULL,check=True)
+        else: subprocess.run(['convert',png,'-quality','92',jpg],check=True)
+    return jpg
+def url_publica(jpg):
+    """Puja el JPEG al repositori i torna la URL raw. Només funciona dins de GitHub Actions."""
+    repo=os.environ.get('GITHUB_REPOSITORY')
+    if not repo: raise RuntimeError('fora de GitHub Actions: no hi ha URL pública')
+    rel=os.path.relpath(jpg,V); g=lambda *a: subprocess.run(['git','-C',V,*a],capture_output=True,text=True)
+    g('config','user.name','publicador'); g('config','user.email','publicador@users.noreply.github.com'); g('add',rel); g('commit','-m','imatge per a Instagram','--',rel)
+    for _ in range(3):
+        if g('push').returncode==0: break
+        g('pull','--rebase','-q'); time.sleep(2)
+    url=f'https://raw.githubusercontent.com/{repo}/main/{rel}'
+    for _ in range(30):
+        try:
+            if urllib.request.urlopen(urllib.request.Request(url,method='HEAD'),timeout=20).status==200: return url
+        except Exception: pass
+        time.sleep(4)
+    raise RuntimeError('la imatge no és accessible públicament')
+def historia(png):
+    """Publica un PNG 1080x1920 com a història. Torna l'id de la publicació."""
+    return publica_imatge(compte()['user_id'],url_publica(a_jpeg(png)),historia=True)
+
 if __name__=='__main__':
-    if sys.argv[1:]==['check']:
+    if sys.argv[1:]==['prova-historia']:
+        # Publica DE VERITAT la història de pròxims partits del primer dia amb partits. Només s'executa si algú llança aquest mode a mà.
+        import datetime, publicar as U, proxims as P
+        d0,d1=U.cap_de_setmana(P.avui_madrid())
+        if not P.partits(d0,d1,jugats=False): d0,d1=d0+datetime.timedelta(days=7),d1+datetime.timedelta(days=7)
+        res=P.generar_story(d0,d1,U.OUT)
+        try: mid=historia(res[0][2]); U.envia_text(f'✅ Història de prova publicada a Instagram ({res[0][0]}). Id {mid}. Mira el perfil.','sistema'); print('ok',mid)
+        except Exception as e: U.envia_text(f'⚠️ Instagram: no s\'ha pogut publicar la història de prova → {e}','sistema'); print('ERROR',e)
+    elif sys.argv[1:]==['check']:
         import publicar as U
         try:
             c=compte(); l=limit(c['user_id']); us=(l.get('data') or [{}])[0].get('quota_usage','?') if 'data' in l else '?'

@@ -65,6 +65,11 @@ def comprova_resultats(avui):
         png=historia_resultat(r)
         if envia_fitxer(png,f'🔴 FINAL · {r["h"]} {r["hs"]}-{r["as_"]} {r["a"]} · {r["comp"]}{" · "+r["grup"] if r["grup"] else ""}','directe'):
             e['enviats'][str(r['id'])]=f'{r["hs"]}-{r["as_"]}'; desa(e)
+        if IG.auto('histories_resultats') and str(r['id']) not in e.setdefault('ig',{}):
+            try:
+                e['ig'][str(r['id'])]=IG.historia(png); desa(e); envia_text(f'📲 Publicada a Instagram com a història: {r["h"]} {r["hs"]}-{r["as_"]} {r["a"]}','directe')
+            except Exception as ex:
+                log('IG ERROR',ex); envia_text(f'⚠️ No s\'ha pogut publicar a Instagram ({r["h"]} – {r["a"]}): {ex}. Puja-la a mà.','directe')
     return len(nous)
 
 def paquet_dilluns(avui):
