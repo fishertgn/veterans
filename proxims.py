@@ -104,9 +104,9 @@ def competicions():
     ts=get('/tournaments')
     return [t for t in ts if t.get('status')==1 and 'VETERANS' in t['name'].upper() and 'F' in t['name'].upper() and '11' in t['name']]
 
-def partits(d0,d1,jugats=False):
+def partits(d0,d1,jugats=False,ids=None):
     rows=[]
-    for t in competicions():
+    for t in (competicions() if ids is None else [{'id':i} for i in ids]):
         info=get(f'/tournaments/{t["id"]}')
         teams={x['id']:x for x in info['teams']}; groups={g['id']:g['name'] for g in info['groups']}
         for jornada in get(f'/matches/fortournament/{t["id"]}'):
@@ -118,7 +118,7 @@ def partits(d0,d1,jugats=False):
                 if not (d0<=d.date()<=d1): continue
                 h,a=teams[x['idHomeTeam']],teams[x['idVisitorTeam']]
                 rows.append(dict(dt=d,hora=d.strftime('%H:%M'),h=nice(h['name']),hl=UP+h['logoImgUrl'],a=nice(a['name']),al=UP+a['logoImgUrl'],
-                    camp=(x.get('field') or {}).get('name',''),grup=groups.get(x['idGroup'],''),comp=curt(t['name']),jornada=jornada['name'],hs=x['homeScore'],as_=x['visitorScore'],status=x['status'],id=x['id'],startTime=x['startTime']))
+                    camp=(x.get('field') or {}).get('name',''),grup=groups.get(x['idGroup'],''),comp=curt(info['name']),jornada=jornada['name'],hs=x['homeScore'],as_=x['visitorScore'],status=x['status'],id=x['id'],startTime=x['startTime'],tid=t['id'],torneig=info['name']))
     rows.sort(key=lambda r:(r['dt'],r['comp'],r['grup']))
     return rows
 

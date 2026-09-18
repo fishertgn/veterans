@@ -12,7 +12,7 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: 'programat | ara (resultats) | proxims | dilluns (paquet sencer) | prova'
+        description: 'programat | ara | proxims | partit | reel (prova) | dilluns | prova'
         default: 'prova'
 permissions:
   contents: write
@@ -25,6 +25,13 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with: { python-version: '3.12' }
+      - name: ffmpeg (només quan cal fer el reel)
+        env:
+          MODE: ${{ github.event.inputs.mode || 'programat' }}
+        run: |
+          if [ "$(date -u +%u)" = "1" ] || [ "$MODE" = "reel" ] || [ "$MODE" = "dilluns" ]; then
+            command -v ffmpeg >/dev/null || (sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg)
+          fi
       - name: Executar publicador
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
@@ -35,6 +42,8 @@ jobs:
             ara) python publicar.py --ara ;;
             dilluns) python publicar.py --dilluns ;;
             proxims) python publicar.py --proxims ;;
+            partit) python publicar.py --partit ;;
+            reel) python reel.py 2026-09-26 2026-09-27 --test --send ;;
             prova) touch PROVA && python publicar.py ;;
             *) python publicar.py ;;
           esac

@@ -5,7 +5,7 @@
     publicar.py --dilluns  → força el paquet del dilluns ara mateix"""
 import os, sys, re, json, time, datetime, subprocess, hashlib, traceback
 V=os.path.dirname(os.path.abspath(__file__)); os.chdir(V); sys.path.insert(0,V)
-import proxims as P, resultats as R, classificacio as K, story as S, golejadors as G
+import proxims as P, resultats as R, classificacio as K, story as S, golejadors as G, peus as PE, partit as PJ, reel as RL
 CFG=P.cfg(); ESTAT=os.path.join(V,'estat.json'); OUT=os.path.join(V,'out'); os.makedirs(OUT,exist_ok=True)
 LOG=open(os.path.join(V,'publicar.log'),'a')
 def log(*a):
@@ -34,6 +34,10 @@ def tg(method,tema=None,**fields):
     log('ERROR telegram',method,tema,r.stdout); return False
 def envia_fitxer(p,caption,tema=None): return tg('sendDocument',tema,document='@'+p,caption=caption)
 def envia_text(t,tema='sistema'): return tg('sendMessage',tema,text=t)
+def envia_peu(text,tema,de=''):
+    """Peu de foto en un missatge sol, perquè es pugui copiar sencer amb una pulsació llarga."""
+    if not text: return
+    envia_text(f'📝 Peu de foto{(" · "+de) if de else ""}. Copia el missatge següent:',tema); envia_text(text,tema)
 
 def cap_de_setmana(d):
     """Divendres..diumenge de la setmana de d (si d és dilluns-dijous, el cap de setmana anterior... no: el vinent)."""
@@ -70,9 +74,20 @@ def paquet_dilluns(avui):
     envia_text(f'📊 Paquet del dilluns · cap de setmana {d0.day}-{d1.day} {P.MES[d1.month-1]}. Trobaràs cada cosa al seu tema.','sistema')
     for et,n,p in R.generar(d0,d1,OUT): envia_fitxer(p,f'POST · {et} · {n} partits','resultats')
     for et,n,p in R.generar_story(d0,d1,OUT): envia_fitxer(p,f'HISTÒRIA · {et} · {n} partits','resultats')
+    envia_peu(PE.resultats(sorted(P.partits(d0,d1,jugats=None),key=lambda r:(r['comp'],r['grup'],r['dt']))),'resultats','post de resultats')
     for et,p in K.generar(OUT): envia_fitxer(p,'POST · '+et,'classificacio')
     for et,p in K.generar_story(OUT): envia_fitxer(p,'HISTÒRIA · '+et.replace('Història ',''),'classificacio')
+    for t in P.competicions():
+        nom,comp,taules,zones=K.dades(t['id'])
+        if taules: envia_peu(PE.classificacio(K.nom_curt(nom) if 'DIVISI' in nom.upper() else 'Copa F11 Veterans',sorted(taules,key=lambda x:x[0])),'classificacio','classificació '+comp)
     for et,p in G.generar(OUT): envia_fitxer(p,et,'golejadors')      # pichichi i Zamora (si ja hi ha dades)
+    for t in P.competicions():
+        for tipus in ('scorers','goalkeepers'):
+            nom,comp,rs=G.dades(t['id'],tipus)
+            if len(rs)>=3: envia_peu(PE.golejadors(K.nom_curt(nom) if 'DIVISI' in nom.upper() else 'Copa F11 Veterans',rs,tipus),'golejadors',('golejadors ' if tipus=='scorers' else 'porters ')+comp)
+    try:
+        for et,p in RL.generar(d0,d1,OUT): envia_fitxer(p,et,'reels')
+    except Exception as ex: log('reel ERROR',ex)
     n0,n1=cap_de_setmana(avui+datetime.timedelta(days=4))
     for et,n,p in P.generar(n0,n1,OUT): envia_fitxer(p,f'📅 Pròxims partits · {et} · {n} partits','proxims')
     for et,n,p in P.generar_story(n0,n1,OUT): envia_fitxer(p,f'📅 {et} · {n} partits','proxims')
@@ -96,8 +111,12 @@ def proxims_setmana(avui):
     envia_text(f'📅 {dia} · Pròxims partits del cap de setmana {d0.day}-{d1.day} {P.MES[d1.month-1]}. {nota}','proxims')
     for et,n,p in P.generar(d0,d1,OUT): envia_fitxer(p,f'Pròxims partits · {et} · {n} partits','proxims')
     for et,n,p in P.generar_story(d0,d1,OUT): envia_fitxer(p,f'{et} · {n} partits','proxims')
+    envia_peu(PE.proxims(P.partits(d0,d1,jugats=False)),'proxims','post de pròxims partits')
     if avui.weekday()==3:
         for et,p in G.generar_pichichi(OUT): envia_fitxer(p,et,'golejadors')
+        res,pj,info=PJ.generar(d0,d1,OUT)
+        for et,p in res: envia_fitxer(p,et,'partit')
+        if pj: envia_peu(PE.partit(pj,info),'partit','partit de la jornada')
     e['calendari_hash']=h; e['fets'][clau]=True; desa(e); log('proxims enviat',dia)
 
 def main():
@@ -111,6 +130,11 @@ def main():
         if '--ara' in sys.argv: return comprova_resultats(avui)
         if '--dilluns' in sys.argv: return paquet_dilluns(avui)
         if '--proxims' in sys.argv: return proxims_setmana(avui)
+        if '--partit' in sys.argv:
+            d0,d1=cap_de_setmana(avui); res,pj,info=PJ.generar(d0,d1,OUT)
+            for et,p in res: envia_fitxer(p,et,'partit')
+            if pj: envia_peu(PE.partit(pj,info),'partit','partit de la jornada')
+            return
         if wd==0 and 9<=h<=13: paquet_dilluns(avui)      # tolera retards del programador; l'estat evita repetir
         elif wd in (3,4) and 10<=h<=13: proxims_setmana(avui)
         elif (wd==4 and h>=22) or (wd==5 and 14<=h<=23) or (wd==6 and 9<=h<=18): comprova_resultats(avui)
