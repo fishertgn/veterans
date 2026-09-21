@@ -131,3 +131,17 @@ IndexError: list index out of range
                                                                                  ~~~~~~~~~~~^^^
 IndexError: list index out of range
 
+2026-09-21 11:31 ERROR Traceback (most recent call last):
+  File "/home/runner/work/veterans/veterans/publicar.py", line 157, in main
+    paquet_dilluns(avui)
+  File "/home/runner/work/veterans/veterans/publicar.py", line 83, in paquet_dilluns
+    for et,p in K.generar(OUT): envia_fitxer(p,'POST · '+et,'classificacio')
+                ^^^^^^^^^^^^^^
+  File "/home/runner/work/veterans/veterans/classificacio.py", line 147, in generar
+    nom,comp,taules,zones=dades(tid)
+                          ^^^^^^^^^^
+  File "/home/runner/work/veterans/veterans/classificacio.py", line 32, in dades
+    t=P.get(f'/tournaments/{tid}'); teams={x['id']:x for x in t['teams']}; stage=t['stages'][0]
+                                                                                 ~~~~~~~~~~~^^^
+IndexError: list index out of range
+
