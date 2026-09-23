@@ -74,28 +74,54 @@ def comprova_resultats(avui):
 
 def paquet_dilluns(avui):
     e=estat(); clau='dilluns_'+avui.isoformat()
-    if clau in e['fets']: log('dilluns ja fet'); return
+    if clau in e['fets']: return
+    e['fets'][clau]='en curs'; desa(e); errors=[]      # es marca abans: si una part falla, no es repeteix tot el paquet cada mitja hora
     d0,d1=avui-datetime.timedelta(days=3),avui-datetime.timedelta(days=1)   # divendres..diumenge passats
-    envia_text(f'📊 Paquet del dilluns · cap de setmana {d0.day}-{d1.day} {P.MES[d1.month-1]}. Trobaràs cada cosa al seu tema.','sistema')
-    for et,n,p in R.generar(d0,d1,OUT): envia_fitxer(p,f'POST · {et} · {n} partits','resultats')
-    for et,n,p in R.generar_story(d0,d1,OUT): envia_fitxer(p,f'HISTÒRIA · {et} · {n} partits','resultats')
-    envia_peu(PE.resultats(sorted(P.partits(d0,d1,jugats=None),key=lambda r:(r['comp'],r['grup'],r['dt']))),'resultats','post de resultats')
-    for et,p in K.generar(OUT): envia_fitxer(p,'POST · '+et,'classificacio')
-    for et,p in K.generar_story(OUT): envia_fitxer(p,'HISTÒRIA · '+et.replace('Història ',''),'classificacio')
-    for t in P.competicions():
-        nom,comp,taules,zones=K.dades(t['id'])
-        if taules: envia_peu(PE.classificacio(K.nom_curt(nom) if 'DIVISI' in nom.upper() else 'Copa F11 Veterans',sorted(taules,key=lambda x:x[0])),'classificacio','classificació '+comp)
-    for et,p in G.generar(OUT): envia_fitxer(p,et,'golejadors')      # pichichi i Zamora (si ja hi ha dades)
-    for t in P.competicions():
-        for tipus in ('scorers','goalkeepers','assistances','mvps'):
-            nom,comp,rs=G.dades(t['id'],tipus)
-            if len(rs)>=3: envia_peu(PE.golejadors(K.nom_curt(nom) if 'DIVISI' in nom.upper() else 'Copa F11 Veterans',rs,tipus),'golejadors',G.CFG[tipus]['titol'].lower()+' '+comp)
     try:
-        for et,p in RL.generar(d0,d1,OUT): envia_fitxer(p,et,'reels')
-    except Exception as ex: log('reel ERROR',ex)
+        envia_text(f'📊 Paquet del dilluns · cap de setmana {d0.day}-{d1.day} {P.MES[d1.month-1]}. Trobaràs cada cosa al seu tema.','sistema')
+    except Exception as ex: log('dilluns ERROR parcial',repr(ex)[:300]); errors.append(repr(ex)[:120])
+    try:
+        for et,n,p in R.generar(d0,d1,OUT): envia_fitxer(p,f'POST · {et} · {n} partits','resultats')
+    except Exception as ex: log('dilluns ERROR parcial',repr(ex)[:300]); errors.append(repr(ex)[:120])
+    try:
+        for et,n,p in R.generar_story(d0,d1,OUT): envia_fitxer(p,f'HISTÒRIA · {et} · {n} partits','resultats')
+    except Exception as ex: log('dilluns ERROR parcial',repr(ex)[:300]); errors.append(repr(ex)[:120])
+    try:
+        envia_peu(PE.resultats(sorted(P.partits(d0,d1,jugats=None),key=lambda r:(r['comp'],r['grup'],r['dt']))),'resultats','post de resultats')
+    except Exception as ex: log('dilluns ERROR parcial',repr(ex)[:300]); errors.append(repr(ex)[:120])
+    try:
+        for et,p in K.generar(OUT): envia_fitxer(p,'POST · '+et,'classificacio')
+    except Exception as ex: log('dilluns ERROR parcial',repr(ex)[:300]); errors.append(repr(ex)[:120])
+    try:
+        for et,p in K.generar_story(OUT): envia_fitxer(p,'HISTÒRIA · '+et.replace('Història ',''),'classificacio')
+    except Exception as ex: log('dilluns ERROR parcial',repr(ex)[:300]); errors.append(repr(ex)[:120])
+    try:
+        for t in P.competicions():
+            nom,comp,taules,zones=K.dades(t['id'])
+            if taules: envia_peu(PE.classificacio(K.nom_curt(nom) if 'DIVISI' in nom.upper() else 'Copa F11 Veterans',sorted(taules,key=lambda x:x[0])),'classificacio','classificació '+comp)
+    except Exception as ex: log('dilluns ERROR parcial',repr(ex)[:300]); errors.append(repr(ex)[:120])
+    try:
+        for et,p in G.generar(OUT): envia_fitxer(p,et,'golejadors')      # pichichi i Zamora (si ja hi ha dades)
+    except Exception as ex: log('dilluns ERROR parcial',repr(ex)[:300]); errors.append(repr(ex)[:120])
+    try:
+        for t in P.competicions():
+            for tipus in ('scorers','goalkeepers','assistances','mvps'):
+                nom,comp,rs=G.dades(t['id'],tipus)
+                if len(rs)>=3: envia_peu(PE.golejadors(K.nom_curt(nom) if 'DIVISI' in nom.upper() else 'Copa F11 Veterans',rs,tipus),'golejadors',G.CFG[tipus]['titol'].lower()+' '+comp)
+    except Exception as ex: log('dilluns ERROR parcial',repr(ex)[:300]); errors.append(repr(ex)[:120])
+    try:
+        try:
+            for et,p in RL.generar(d0,d1,OUT): envia_fitxer(p,et,'reels')
+        except Exception as ex: log('reel ERROR',ex)
+    except Exception as ex: log('dilluns ERROR parcial',repr(ex)[:300]); errors.append(repr(ex)[:120])
     n0,n1=cap_de_setmana(avui+datetime.timedelta(days=4))
-    for et,n,p in P.generar(n0,n1,OUT): envia_fitxer(p,f'📅 Pròxims partits · {et} · {n} partits','proxims')
-    for et,n,p in P.generar_story(n0,n1,OUT): envia_fitxer(p,f'📅 {et} · {n} partits','proxims')
+    try:
+        for et,n,p in P.generar(n0,n1,OUT): envia_fitxer(p,f'📅 Pròxims partits · {et} · {n} partits','proxims')
+    except Exception as ex: log('dilluns ERROR parcial',repr(ex)[:300]); errors.append(repr(ex)[:120])
+    try:
+        for et,n,p in P.generar_story(n0,n1,OUT): envia_fitxer(p,f'📅 {et} · {n} partits','proxims')
+    except Exception as ex: log('dilluns ERROR parcial',repr(ex)[:300]); errors.append(repr(ex)[:120])
+    if errors: envia_text('⚠️ Paquet del dilluns enviat amb '+str(len(errors))+' part(s) que han fallat: '+' | '.join(errors),'sistema')
     e['fets'][clau]=True; e['calendari_hash']=hash_calendari(n0,n1); desa(e); log('dilluns enviat')
 
 def hash_calendari(d0,d1):

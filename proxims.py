@@ -101,8 +101,16 @@ def curt(name):
     return f'LLIGA {m.group(1)}A' if m else 'LLIGA'
 
 def competicions():
-    ts=get('/tournaments')
-    return [t for t in ts if t.get('status')==1 and 'VETERANS' in t['name'].upper() and 'F' in t['name'].upper() and '11' in t['name']]
+    """Competicions de veterans F11 de la temporada EN CURS i amb fases creades.
+    L'organització té torneigs antics (2021-22) encara marcats com a actius: es descarten per temporada."""
+    ts=[t for t in get('/tournaments') if t.get('status')==1 and 'VETERANS' in t['name'].upper() and re.search(r'F\s*-?\s*11',t['name'].upper())]
+    det=[]
+    for t in ts:
+        try: det.append((t,get(f"/tournaments/{t['id']}")))
+        except Exception: pass
+    if not det: return []
+    temporada=max(i.get('idSeason') or 0 for _,i in det)
+    return [t for t,i in det if (i.get('idSeason') or 0)==temporada and i.get('stages')]
 
 def partits(d0,d1,jugats=False,ids=None):
     rows=[]

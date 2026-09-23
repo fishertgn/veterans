@@ -29,7 +29,9 @@ def llegenda(zones,tag='span'):
     return out
 
 def dades(tid):
-    t=P.get(f'/tournaments/{tid}'); teams={x['id']:x for x in t['teams']}; stage=t['stages'][0]
+    t=P.get(f'/tournaments/{tid}'); teams={x['id']:x for x in t['teams']}
+    if not t.get('stages'): return t['name'],P.curt(t['name']),[],[]
+    stage=t['stages'][0]
     c=P.get(f"/tournaments/stageclassification/{stage['id']}"); groups={g['id']:g['name'] for g in t['groups']}
     taules={}
     for r in c['leagueClassification']:
