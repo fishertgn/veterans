@@ -1,5 +1,7 @@
 {
- "enviats": {},
+ "enviats": {
+  "8082": "6-1"
+ },
  "fets": {
   "proxims_2026-09-18": true,
   "proxims_2026-09-24": true,
