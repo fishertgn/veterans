@@ -251,3 +251,13 @@ NameError: name 'IG' is not defined
        ^^
 NameError: name 'IG' is not defined
 
+2026-09-26 21:30 resultats 2026-09-25..2026-09-27: 4 jugats, 1 nous
+2026-09-26 21:31 ERROR Traceback (most recent call last):
+  File "/home/runner/work/veterans/veterans/publicar.py", line 186, in main
+    elif (wd==4 and h>=22) or (wd==5 and 14<=h<=23) or (wd==6 and 9<=h<=18): comprova_resultats(avui)
+                                                                             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/work/veterans/veterans/publicar.py", line 68, in comprova_resultats
+    if IG.auto('histories_resultats') and str(r['id']) not in e.setdefault('ig',{}):
+       ^^
+NameError: name 'IG' is not defined
+
