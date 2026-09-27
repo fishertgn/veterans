@@ -5,7 +5,7 @@
     publicar.py --dilluns  → força el paquet del dilluns ara mateix"""
 import os, sys, re, json, time, datetime, subprocess, hashlib, traceback
 V=os.path.dirname(os.path.abspath(__file__)); os.chdir(V); sys.path.insert(0,V)
-import proxims as P, resultats as R, classificacio as K, story as S, golejadors as G, peus as PE, partit as PJ, reel as RL
+import proxims as P, resultats as R, classificacio as K, story as S, golejadors as G, peus as PE, partit as PJ, reel as RL, mensual as MS, instagram as IG
 CFG=P.cfg(); ESTAT=os.path.join(V,'estat.json'); OUT=os.path.join(V,'out'); os.makedirs(OUT,exist_ok=True)
 LOG=open(os.path.join(V,'publicar.log'),'a')
 def log(*a):
@@ -55,6 +55,22 @@ def historia_resultat(r):
     P.captura(tmp,png,1080,1920,10000)
     return png
 
+def publica_ig(r,png,e):
+    """Publica la història d'un resultat a Instagram si l'interruptor ho permet. Mai trenca el publicador."""
+    try:
+        if not IG.auto('histories_resultats') or str(r['id']) in e.setdefault('ig',{}): return
+        e['ig'][str(r['id'])]=IG.historia(png); desa(e)
+        envia_text(f'📲 Publicada a Instagram com a història: {r["h"]} {r["hs"]}-{r["as_"]} {r["a"]}','directe')
+    except Exception as ex:
+        log('IG ERROR',repr(ex)[:200]); envia_text(f'⚠️ No s\'ha pogut publicar a Instagram ({r["h"]} – {r["a"]}): {ex}. Puja-la a mà.','directe')
+
+def ig_pendents(avui):
+    """Publica a Instagram les històries de resultat del cap de setmana que ja van a Telegram però no a Instagram."""
+    e=estat(); d0,d1=cap_de_setmana(avui if avui.weekday()>=4 else avui-datetime.timedelta(days=avui.weekday()+1))
+    rows=[r for r in P.partits(d0,d1,jugats=True) if str(r['id']) in e.get('enviats',{}) and str(r['id']) not in e.get('ig',{})]
+    envia_text(f'📲 Publicant a Instagram {len(rows)} història(es) de resultat pendents...','sistema')
+    for r in sorted(rows,key=lambda r:r['dt']): publica_ig(r,historia_resultat(r),e)
+
 def comprova_resultats(avui):
     """Historia per cada partit acabat del cap de setmana que encara no s'hagi enviat."""
     e=estat(); d0,d1=cap_de_setmana(avui)
@@ -65,11 +81,7 @@ def comprova_resultats(avui):
         png=historia_resultat(r)
         if envia_fitxer(png,f'🔴 FINAL · {r["h"]} {r["hs"]}-{r["as_"]} {r["a"]} · {r["comp"]}{" · "+r["grup"] if r["grup"] else ""}','directe'):
             e['enviats'][str(r['id'])]=f'{r["hs"]}-{r["as_"]}'; desa(e)
-        if IG.auto('histories_resultats') and str(r['id']) not in e.setdefault('ig',{}):
-            try:
-                e['ig'][str(r['id'])]=IG.historia(png); desa(e); envia_text(f'📲 Publicada a Instagram com a història: {r["h"]} {r["hs"]}-{r["as_"]} {r["a"]}','directe')
-            except Exception as ex:
-                log('IG ERROR',ex); envia_text(f'⚠️ No s\'ha pogut publicar a Instagram ({r["h"]} – {r["a"]}): {ex}. Puja-la a mà.','directe')
+        publica_ig(r,png,e)
     return len(nous)
 
 def paquet_dilluns(avui):
@@ -174,6 +186,7 @@ def main():
         if '--dilluns' in sys.argv: return paquet_dilluns(avui)
         if '--proxims' in sys.argv: return proxims_setmana(avui)
         if '--mensual' in sys.argv: return resum_mensual(avui)
+        if '--igpendents' in sys.argv: return ig_pendents(avui)
         if '--partit' in sys.argv:
             d0,d1=cap_de_setmana(avui); res,pj,info=PJ.generar(d0,d1,OUT)
             for et,p in res: envia_fitxer(p,et,'partit')

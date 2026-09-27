@@ -12,7 +12,7 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: 'programat | igcheck | ighistoria (PUBLICA les històries de pròxims partits pendents) | ara | proxims | reelproxims | partit | mensual | reel (prova) | dilluns | prova'
+        description: 'programat | igpendents (publica a IG els resultats pendents) | igcheck | ighistoria (PUBLICA les històries de pròxims partits pendents) | ara | proxims | reelproxims | partit | mensual | reel (prova) | dilluns | prova'
         default: 'prova'
 permissions:
   contents: write
@@ -48,6 +48,7 @@ jobs:
             partit) python publicar.py --partit ;;
             mensual) python publicar.py --mensual ;;
             igcheck) python instagram.py check ;;
+            igpendents) python publicar.py --igpendents ;;
             ighistoria) python instagram.py prova-historia ;;
             reel) python reel.py resultats 2026-09-26 2026-09-27 --test --send ;;
             reelproxims) python reel.py proxims --send ;;
