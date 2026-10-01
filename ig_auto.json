@@ -1,4 +1,5 @@
 {
  "histories_resultats": true,
- "_nota": "Interruptor de la publicació automàtica a Instagram. Posa false per aturar-la. Els posts NO es publiquen mai sols."
+ "_nota": "Interruptors de la publicació automàtica a Instagram (posa false per aturar). histories_resultats: cada resultat. histories_proxims: dijous, i divendres només si canvia l'horari. Els posts NO es publiquen mai sols.",
+ "histories_proxims": true
 }

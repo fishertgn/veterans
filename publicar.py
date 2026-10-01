@@ -140,6 +140,31 @@ def hash_calendari(d0,d1):
     rows=P.partits(d0,d1,jugats=None)
     return hashlib.md5(json.dumps([(r['id'],r['startTime'] if 'startTime' in r else r['dt'].isoformat(),r['camp']) for r in rows],sort_keys=True).encode()).hexdigest()
 
+def publica_ig_proxims(avui,d0,d1,histories,e):
+    """Històries de pròxims partits a Instagram.
+    Dijous: es publiquen totes. Divendres: només es tornen a publicar els dies l'horari dels quals ha canviat
+    des de dijous (si dijous no es va publicar automàticament, divendres no fa res). Mai trenca el publicador."""
+    try:
+        if not IG.auto('histories_proxims'): return
+        hashes=e.setdefault('proxims_hash',{}); fetes=e.setdefault('ig_proxims',[])
+        rows=P.partits(d0,d1,jugats=False)
+        for dia in sorted({r['dt'].date() for r in rows}):
+            rs=sorted([r for r in rows if r['dt'].date()==dia],key=lambda r:(r['dt'],r['id']))
+            hd=hashlib.md5(json.dumps([(r['id'],r['dt'].isoformat(),r['camp']) for r in rs]).encode()).hexdigest()[:10]
+            et=f'{P.DIES[dia.weekday()]} {dia.day} {P.MES[dia.month-1]}'; k=dia.isoformat()
+            if avui.weekday()==3: toca=True; motiu=''
+            elif k in hashes and hashes[k]!=hd: toca=True; motiu=' (horari canviat des de dijous)'
+            else: toca=False
+            if not toca: continue
+            for label,n,png in [x for x in histories if et in x[0]]:
+                clau=f'{k}·{hd}·{label}'
+                if clau in fetes: continue
+                IG.historia(png); fetes.append(clau); desa(e)
+                envia_text(f'📲 Publicada a Instagram: {label}{motiu}','proxims')
+            hashes[k]=hd; desa(e)
+    except Exception as ex:
+        log('IG proxims ERROR',repr(ex)[:200]); envia_text(f'⚠️ No s\'han pogut publicar a Instagram les històries de pròxims partits: {ex}. Puja-les a mà.','proxims')
+
 def proxims_setmana(avui):
     """Dijous i divendres al matí: pròxims partits del cap de setmana (post + històries). Un cop per dia."""
     e=estat(); clau='proxims_'+avui.isoformat()
@@ -153,7 +178,9 @@ def proxims_setmana(avui):
     else: nota='Primera versió de la setmana.'
     envia_text(f'📅 {dia} · Pròxims partits del cap de setmana {d0.day}-{d1.day} {P.MES[d1.month-1]}. {nota}','proxims')
     for et,n,p in P.generar(d0,d1,OUT): envia_fitxer(p,f'Pròxims partits · {et} · {n} partits','proxims')
-    for et,n,p in P.generar_story(d0,d1,OUT): envia_fitxer(p,f'{et} · {n} partits','proxims')
+    histories=P.generar_story(d0,d1,OUT)
+    for et,n,p in histories: envia_fitxer(p,f'{et} · {n} partits','proxims')
+    publica_ig_proxims(avui,d0,d1,histories,e)
     envia_peu(PE.proxims(P.partits(d0,d1,jugats=False)),'proxims','post de pròxims partits')
     if avui.weekday()==3:
         try:
