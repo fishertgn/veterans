@@ -20,7 +20,8 @@
   "proxims_2026-09-24": true,
   "proxims_2026-09-25": true,
   "dilluns_2026-09-28": true,
-  "proxims_2026-10-01": true
+  "proxims_2026-10-01": true,
+  "proxims_2026-10-02": true
  },
  "calendari_hash": "ddc03c2f846c0b92e31b31501e1124a5",
  "ig_proxims": [
@@ -34,5 +35,6 @@
   "8057": "18355713379171002",
   "8070": "18123941228307624",
   "8049": "18335714461277079"
- }
+ },
+ "proxims_hash": {}
 }
