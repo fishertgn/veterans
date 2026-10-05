@@ -23,9 +23,11 @@
   "proxims_2026-09-25": true,
   "dilluns_2026-09-28": true,
   "proxims_2026-10-01": true,
-  "proxims_2026-10-02": true
+  "proxims_2026-10-02": true,
+  "dilluns_2026-10-05": true,
+  "mensual_2026-09": true
  },
- "calendari_hash": "ddc03c2f846c0b92e31b31501e1124a5",
+ "calendari_hash": "d751713988987e9331980363e24189ce",
  "ig_proxims": [
   "2026-09-25·Història DISSABTE 26 SET",
   "2026-09-25·Història DIUMENGE 27 SET"
