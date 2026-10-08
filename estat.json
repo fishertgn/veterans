@@ -25,12 +25,14 @@
   "proxims_2026-10-01": true,
   "proxims_2026-10-02": true,
   "dilluns_2026-10-05": true,
-  "mensual_2026-09": true
+  "mensual_2026-09": true,
+  "proxims_2026-10-08": true
  },
- "calendari_hash": "d751713988987e9331980363e24189ce",
+ "calendari_hash": "ead89c7922a2041161182b5e28507610",
  "ig_proxims": [
   "2026-09-25·Història DISSABTE 26 SET",
-  "2026-09-25·Història DIUMENGE 27 SET"
+  "2026-09-25·Història DIUMENGE 27 SET",
+  "2026-10-10·406f05d266·Història DISSABTE 10 OCT"
  ],
  "ig": {
   "8071": "18129276685774405",
@@ -42,5 +44,7 @@
   "8084": "17929447860408699",
   "8109": "17907922077483800"
  },
- "proxims_hash": {}
+ "proxims_hash": {
+  "2026-10-10": "406f05d266"
+ }
 }
