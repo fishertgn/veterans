@@ -37,7 +37,7 @@ def dades(tid):
     for r in c['leagueClassification']:
         tm=teams.get(r['idTeam'])
         if not tm: continue
-        taules.setdefault(r['idGroup'],[]).append(dict(n=P.nice(tm['name']),lg=UP+tm['logoImgUrl'],pj=r['gamesPlayed'],g=r['gamesWon'],e=r['gamesDraw'],p=r['gamesLost'],gf=r['points'],gc=r['pointsAgainst'],dg=r['pointDiff'],pts=r['tournamentPoints'],forma=(r.get('previousResult') or '')[-5:]))
+        taules.setdefault(r['idGroup'],[]).append(dict(n=P.nice(tm['name']),lg=P.escut(tm['logoImgUrl']),pj=r['gamesPlayed'],g=r['gamesWon'],e=r['gamesDraw'],p=r['gamesLost'],gf=r['points'],gc=r['pointsAgainst'],dg=r['pointDiff'],pts=r['tournamentPoints'],forma=(r.get('previousResult') or '')[-5:]))
     try: zones=json.loads(c.get('colorConfig') or '[]')
     except Exception: zones=[]
     zones=[(int(z['start']),int(z['end']),z.get('title','')) for z in zones]

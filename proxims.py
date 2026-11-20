@@ -9,6 +9,23 @@ def furl(p):
     """Adreça file:// vàlida a Linux, Mac i Windows."""
     return pathlib.Path(p).resolve().as_uri()
 RED='#d60000'; LOGO=furl(os.path.join(V,'logo_crop.png'))
+ESCUTS=os.path.join(V,'escuts')
+def escut(ruta):
+    """Escut d'equip descarregat de MyGol i reduït a 200 px, desat a escuts/ (es guarda al repositori).
+    Els originals poden fer 1 MB i a vegades no carregaven a temps. Si falla, torna la URL original."""
+    url=ruta if (ruta or '').startswith('http') else UP+(ruta or '')
+    try:
+        import hashlib, io
+        from PIL import Image
+        os.makedirs(ESCUTS,exist_ok=True)
+        f=os.path.join(ESCUTS,hashlib.md5(url.encode()).hexdigest()[:16]+'.png')
+        if not os.path.exists(f):
+            req=urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0'})
+            im=Image.open(io.BytesIO(urllib.request.urlopen(req,timeout=40).read())).convert('RGBA')
+            im.thumbnail((200,200)); im.save(f,'PNG',optimize=True)
+        return furl(f)
+    except Exception:
+        return url
 def _chrome():
     c=os.environ.get('CHROME_BIN')
     if c: return c
@@ -145,7 +162,7 @@ def partits(d0,d1,jugats=False,ids=None):
                 d=datetime.datetime.fromisoformat(x['startTime'])
                 if not (d0<=d.date()<=d1): continue
                 h,a=teams[x['idHomeTeam']],teams[x['idVisitorTeam']]
-                rows.append(dict(dt=d,hora=d.strftime('%H:%M'),h=nice(h['name']),hl=UP+h['logoImgUrl'],a=nice(a['name']),al=UP+a['logoImgUrl'],
+                rows.append(dict(dt=d,hora=d.strftime('%H:%M'),h=nice(h['name']),hl=escut(h['logoImgUrl']),a=nice(a['name']),al=escut(a['logoImgUrl']),
                     camp=(x.get('field') or {}).get('name',''),grup=(groups.get(x['idGroup'],'') if curt(info['name'])=='COPA' else ''),comp=curt(info['name']),jornada=jornada['name'],hs=x['homeScore'],as_=x['visitorScore'],status=x['status'],id=x['id'],startTime=x['startTime'],tid=t['id'],torneig=info['name']))
     rows.sort(key=lambda r:(r['dt'],r['comp'],r['grup']))
     return rows
