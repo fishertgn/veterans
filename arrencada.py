@@ -11,7 +11,7 @@ body{{font-family:Barlow,sans-serif;color:#151515;background:{RED}}}
 .ft{{position:absolute;left:0;bottom:30px;width:1080px;text-align:center;font-weight:600;font-size:18px;letter-spacing:3px;color:#ffb3b3}}
 """
 def render(name,html,w=1080,h=1350):
-    png=os.path.join(OUT,name+'.png'); tmp=png[:-4]+'.html'; open(tmp,'w').write(html)
+    png=os.path.join(OUT,name+'.png'); tmp=png[:-4]+'.html'; open(tmp,'w',encoding='utf-8').write(html)
     import subprocess
     subprocess.run([P.CHROME,'--headless=new','--disable-gpu','--hide-scrollbars','--allow-file-access-from-files',f'--window-size={w},{h}','--virtual-time-budget=15000',f'--screenshot={png}','file://'+tmp],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL); print(png); return png
 

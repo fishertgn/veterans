@@ -23,7 +23,7 @@ def generar(d0,d1,outdir,test=False,tipus='resultats'):
             base=(P.html_story if tipus=='proxims' else R.html_story)(et,tros,1,1)
             for k in range(len(tros)+1):
                 html=base.replace('</style>',f'.sheet .r:nth-child(n+{k+1}){{visibility:hidden}}</style>',1)
-                f=os.path.join(tmp,f'f{n:03d}.png'); h=f[:-4]+'.html'; open(h,'w').write(html); P.captura(h,f,1080,1920); n+=1
+                f=os.path.join(tmp,f'f{n:03d}.png'); h=f[:-4]+'.html'; open(h,'w',encoding='utf-8').write(html); P.captura(h,f,1080,1920); n+=1
                 dur=T_INTRO if k==0 else (T_FILA if k<len(tros) else (T_FINAL if dia==dies[-1] else T_PAUSA))
                 llista.append((f,dur))
     if not ff: print('ffmpeg no disponible: fotogrames a',tmp); return []

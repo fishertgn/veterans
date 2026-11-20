@@ -4,13 +4,18 @@ de veterans F11 actives a MyGol. Ús: proxims.py AAAA-MM-DD AAAA-MM-DD [--send]"
 import json, sys, os, re, math, datetime, subprocess, urllib.request
 V=os.path.dirname(os.path.abspath(__file__))
 API='https://minifutboltarragones.mygol.es/api'; UP='https://minifutboltarragones.mygol.es/upload/'
-RED='#d60000'; LOGO='file://'+V+'/logo_crop.png'
-import shutil
+import shutil, pathlib
+def furl(p):
+    """Adreça file:// vàlida a Linux, Mac i Windows."""
+    return pathlib.Path(p).resolve().as_uri()
+RED='#d60000'; LOGO=furl(os.path.join(V,'logo_crop.png'))
 def _chrome():
     c=os.environ.get('CHROME_BIN')
     if c: return c
     mac='/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
     if os.path.exists(mac): return mac
+    for w in (r'C:\Program Files\Google\Chrome\Application\chrome.exe',r'C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe'):
+        if os.path.exists(w): return w     # PC de casa (Windows)
     return shutil.which('google-chrome') or shutil.which('chromium-browser') or shutil.which('chromium') or 'google-chrome'
 CHROME=_chrome()
 CHROME_FLAGS=['--headless=new','--disable-gpu','--hide-scrollbars','--allow-file-access-from-files']+([] if sys.platform=='darwin' else ['--no-sandbox','--disable-dev-shm-usage'])
@@ -47,7 +52,7 @@ def injecta_patrocinador(html,h):
     s=patrocinador()
     if not s or 'class="patro"' in html: return html
     lg=os.path.join(V,s.get('logo') or '')
-    marca=f'<img src="file://{lg}">' if s.get('logo') and os.path.exists(lg) else f'<b>{s["nom"]}</b>'
+    marca=f'<img src="{furl(lg)}">' if s.get('logo') and os.path.exists(lg) else f'<b>{s["nom"]}</b>'
     base=".patro{position:absolute;background:#fff;color:#151515;display:flex;align-items:center;justify-content:center;font-family:Barlow,sans-serif;z-index:5}.patro small{font-weight:700;letter-spacing:3px;color:#9a9a9a;text-transform:uppercase;white-space:nowrap}.patro b{font-family:'Barlow Condensed';font-weight:700;letter-spacing:1px;text-transform:uppercase;white-space:nowrap}.patro img{object-fit:contain;display:block}"
     if h==1350:
         css=base+".patro{right:44px;top:40px;height:120px;min-width:210px;max-width:330px;padding:10px 24px;border-radius:16px;flex-direction:column;gap:6px}.patro small{font-size:13px}.patro b{font-size:32px}.patro img{max-height:74px;max-width:290px}.patro{height:128px!important;top:36px!important;gap:4px!important}.hd .pg{top:auto!important;bottom:4px!important;right:48px!important;font-size:28px!important}"
@@ -66,7 +71,7 @@ def captura(html_path,png,w,h,budget=20000):
         _h=open(html_path,encoding='utf-8').read(); _n=injecta_patrocinador(_h,h)
         if _n!=_h: open(html_path,'w',encoding='utf-8').write(_n)
     except Exception: pass
-    subprocess.run([CHROME]+CHROME_FLAGS+[f'--window-size={w},{h}',f'--virtual-time-budget={budget}',f'--screenshot={png}','file://'+urllib.parse.quote(html_path)],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
+    subprocess.run([CHROME]+CHROME_FLAGS+[f'--window-size={w},{h}',f'--virtual-time-budget={budget}',f'--screenshot={png}',furl(html_path)],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
     return png
 DIES=['DILLUNS','DIMARTS','DIMECRES','DIJOUS','DIVENDRES','DISSABTE','DIUMENGE']; MES=['GEN','FEB','MAR','ABR','MAI','JUN','JUL','AGO','SET','OCT','NOV','DES']
 FONTS='<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">'
@@ -207,7 +212,7 @@ body{{background:{RED};font-family:Barlow,sans-serif;color:#151515}}
 </style></head><body><img class="logo" src="{LOGO}">{pg}<div class="tt">{titol}</div><div class="dd">{sub}</div><div class="sheet">{cos}</div><div class="ft">@veteranstarragona</div></body></html>"""
 
 def render_story(html,png):
-    tmp=png[:-4]+'.html'; open(tmp,'w').write(html); return captura(tmp,png,1080,1920)
+    tmp=png[:-4]+'.html'; open(tmp,'w',encoding='utf-8').write(html); return captura(tmp,png,1080,1920)
 
 def html_story(dia,rs,pag,npag):
     """Història 1080x1920: un dia per història, files grans (12 màxim)."""
@@ -242,13 +247,13 @@ def generar_story(d0,d1,outdir,per_pag=12):
         pags=[rs[i:i+per_pag] for i in range(0,len(rs),per_pag)]
         for i,p in enumerate(pags,1):
             png=nom_fitxer(outdir,'PROXIMS PARTITS',[r['comp'] for r in rs],dia,None,'HISTORIA',i,len(pags))
-            tmp=png[:-4]+'.html'; open(tmp,'w').write(html_story(et,p,i,len(pags)))
+            tmp=png[:-4]+'.html'; open(tmp,'w',encoding='utf-8').write(html_story(et,p,i,len(pags)))
             captura(tmp,png,1080,1920)
             out.append(('Història '+et+(f' ({i}/{len(pags)})' if len(pags)>1 else ''),len(p),png))
     return out
 
 def render(html,png):
-    tmp=png[:-4]+'.html'; open(tmp,'w').write(html)
+    tmp=png[:-4]+'.html'; open(tmp,'w',encoding='utf-8').write(html)
     captura(tmp,png,1080,1350)
     return png
 

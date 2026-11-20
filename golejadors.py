@@ -63,7 +63,7 @@ def generar(outdir,ids=None,stories=True):
             if len(rs)<3: continue
             col=COLORS.get(comp,'#d60000'); col='#ffd400' if comp=='COPA' else col; sub=K.nom_curt(nom) if 'DIVISI' in nom.upper() else 'Copa F11 Veterans'; c=CFG[tipus]
             png=P.nom_fitxer(outdir,{'scorers':'GOLEJADORS','goalkeepers':'PORTERS','assistances':'ASSISTENCIES','mvps':'MVP'}[tipus],[comp],P.avui_madrid(),None,'POST'); tmp=png[:-4]+'.html'
-            open(tmp,'w').write(P.post_shell(c['titol'],sub,cos(rs[:10],tipus),css(col,82,20,14,44,34,150,96,48),peu='Dades oficials de Minifutbol Tarragonès'))
+            open(tmp,'w',encoding='utf-8').write(P.post_shell(c['titol'],sub,cos(rs[:10],tipus),css(col,82,20,14,44,34,150,96,48),peu='Dades oficials de Minifutbol Tarragonès'))
             P.captura(tmp,png,1080,1350); out.append((f'POST · {c["titol"]} {sub}',png))
             if stories:
                 png=P.nom_fitxer(outdir,{'scorers':'GOLEJADORS','goalkeepers':'PORTERS','assistances':'ASSISTENCIES','mvps':'MVP'}[tipus],[comp],P.avui_madrid(),None,'HISTORIA')

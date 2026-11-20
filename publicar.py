@@ -51,7 +51,7 @@ def historia_resultat(r):
     html=S.resultat(r['h'],r['a'],r['hl'],r['al'],r['hs'],r['as_'],etiqueta_data(r['dt']),r['hora'],r['camp'].upper(),
                     'COPA F11 VETERANS' if r['comp']=='COPA' else f"LLIGA {r['comp'].split()[-1]} DIVISIÓ",r['jornada'].replace('Jornada','J').strip(),r['grup'])
     nom=re.sub(r'[\\/:*?"<>|;,.]','',f"RESULTAT {P.etiqueta_comp(r['comp'])} {r['h']} {r['hs']}-{r['as_']} {r['a']}".upper())+' '+P.data_fitxer(r['dt'].date())
-    png=os.path.join(OUT,nom+'.png'); tmp=png[:-4]+'.html'; open(tmp,'w').write(html)
+    png=os.path.join(OUT,nom+'.png'); tmp=png[:-4]+'.html'; open(tmp,'w',encoding='utf-8').write(html)
     P.captura(tmp,png,1080,1920,10000)
     return png
 

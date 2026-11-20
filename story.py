@@ -1,7 +1,7 @@
 import json, sys
 UP='https://minifutboltarragones.mygol.es/upload/'
 RED='#d60000'
-import os as _os; LOGO='file://'+_os.path.dirname(_os.path.abspath(__file__))+'/logo_crop.png'
+import os as _os; import proxims as _P; LOGO=_P.LOGO
 FONTS='<link href="https://fonts.googleapis.com/css2?family=Anton&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">'
 def resultat(home,away,hl,al,hs,as_,data,hora,camp,comp,jornada,grup):
     guany = home if hs>as_ else away if as_>hs else 'EMPAT'

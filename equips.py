@@ -53,7 +53,7 @@ def contingut(e,k):
 def fitxer(outdir,e,fmt): return os.path.join(outdir,re.sub(r'[\\/:*?"<>|;,.]','',f'EQUIP {e["grup"].upper()} {e["n"].upper()}')+f' {fmt}.png')
 def genera(e,outdir):
     out=[]
-    css,cos=contingut(e,1.2); png=fitxer(outdir,e,'POST'); tmp=png[:-4]+'.html'; open(tmp,'w').write(P.post_shell('Coneix els equips','Copa F11 Veterans 26-27',cos,css+'.cos{gap:14px}')); P.captura(tmp,png,1080,1350); out.append(png)
+    css,cos=contingut(e,1.2); png=fitxer(outdir,e,'POST'); tmp=png[:-4]+'.html'; open(tmp,'w',encoding='utf-8').write(P.post_shell('Coneix els equips','Copa F11 Veterans 26-27',cos,css+'.cos{gap:14px}')); P.captura(tmp,png,1080,1350); out.append(png)
     css,cos=contingut(e,1.42); png=fitxer(outdir,e,'HISTORIA'); P.render_story(P.story_shell('Coneix els equips','Copa F11 Veterans 26-27',cos,css+'.sheet{gap:14px}'),png); out.append(png)
     return out
 def peu(e):

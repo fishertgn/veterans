@@ -54,7 +54,7 @@ def generar(any_,mes,outdir,ids=None):
     if not d: return [],None
     sub=f'{MESOS[mes-1]} {any_}'; dia=datetime.date(any_,mes,1); out=[]
     nom=lambda f: os.path.join(outdir,f'RESUM MENSUAL {mes:02d}.{any_} {f}.png')
-    css,cos=contingut(d,1040); png=nom('POST'); tmp=png[:-4]+'.html'; open(tmp,'w').write(P.post_shell('El resum del mes',sub,cos,css+'.cos{gap:14px}',peu='Dades oficials de Minifutbol Tarragonès')); P.captura(tmp,png,1080,1350); out.append(('POST · Resum mensual '+sub.title(),png))
+    css,cos=contingut(d,1040); png=nom('POST'); tmp=png[:-4]+'.html'; open(tmp,'w',encoding='utf-8').write(P.post_shell('El resum del mes',sub,cos,css+'.cos{gap:14px}',peu='Dades oficials de Minifutbol Tarragonès')); P.captura(tmp,png,1080,1350); out.append(('POST · Resum mensual '+sub.title(),png))
     css,cos=contingut(d,1270); png=nom('HISTORIA'); P.render_story(P.story_shell('El resum del mes',sub,cos,css+'.sheet{gap:14px}'),png); out.append(('HISTÒRIA · Resum mensual '+sub.title(),png))
     return out,d
 def peu(d,any_,mes):
