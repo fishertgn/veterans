@@ -93,6 +93,20 @@ def nice(n):
         n=re.sub(rf'(?<=\s){w}(?=\s)',w.lower(),n)
     return n
 
+# Trofeu dibuixat (no emoji: als servidors de GitHub no hi ha font d'emojis)
+TROFEU='<svg viewBox="0 0 24 24" width="0.85em" height="0.85em" style="margin-right:5px;flex:none" fill="currentColor"><path d="M7 2h10v2h4v3a5 5 0 0 1-4.6 5A5 5 0 0 1 13 14.9V18h3v2H8v-2h3v-3.1A5 5 0 0 1 7.6 12 5 5 0 0 1 3 7V4h4V2zm-2 4v1a3 3 0 0 0 2 2.8V6H5zm12 0v3.8A3 3 0 0 0 19 7V6h-2z"/></svg>'
+def insignia(r,mida=20):
+    """Etiqueta compacta de la competició (opció 5, nov. 2026): 1ª, 2ª, 3ª o trofeu + grup de la Copa."""
+    col=COLORS.get(r['comp'],'#555')
+    if r['comp']=='COPA':
+        g=(r.get('grup') or '').upper().replace('GRUP ','').replace('COPA ','').strip()
+        txt=TROFEU+g
+        if len(g)>3: mida=int(mida*0.6)
+    else:
+        m=re.search(r'(\d)',r['comp']); txt=(m.group(1)+'ª') if m else r['comp']
+    return (f'<span class="g" style="background:{col};color:#fff;border-color:{col};font-size:{mida}px;letter-spacing:0;line-height:1;'
+            f'border-radius:14px;padding:7px 12px;min-width:{int(mida*3.2)}px;justify-self:end;display:inline-flex;align-items:center;justify-content:center">{txt}</span>')
+
 def curt(name):
     """Nom curt de la competició per a l'etiqueta."""
     u=name.upper()
@@ -127,7 +141,7 @@ def partits(d0,d1,jugats=False,ids=None):
                 if not (d0<=d.date()<=d1): continue
                 h,a=teams[x['idHomeTeam']],teams[x['idVisitorTeam']]
                 rows.append(dict(dt=d,hora=d.strftime('%H:%M'),h=nice(h['name']),hl=UP+h['logoImgUrl'],a=nice(a['name']),al=UP+a['logoImgUrl'],
-                    camp=(x.get('field') or {}).get('name',''),grup=groups.get(x['idGroup'],''),comp=curt(info['name']),jornada=jornada['name'],hs=x['homeScore'],as_=x['visitorScore'],status=x['status'],id=x['id'],startTime=x['startTime'],tid=t['id'],torneig=info['name']))
+                    camp=(x.get('field') or {}).get('name',''),grup=(groups.get(x['idGroup'],'') if curt(info['name'])=='COPA' else ''),comp=curt(info['name']),jornada=jornada['name'],hs=x['homeScore'],as_=x['visitorScore'],status=x['status'],id=x['id'],startTime=x['startTime'],tid=t['id'],torneig=info['name']))
     rows.sort(key=lambda r:(r['dt'],r['comp'],r['grup']))
     return rows
 
@@ -137,7 +151,7 @@ def html_pagina(dia,rs,pag,npag):
         return (f'<div class="r" style="border-left-color:{col}"><span class="h">{r["hora"]}</span>'
                 f'<span class="t l"><span>{r["h"]}</span><img src="{r["hl"]}"></span><span class="x">–</span>'
                 f'<span class="t"><img src="{r["al"]}"><span>{r["a"]}</span></span>'
-                f'<span class="c">{r["camp"]}</span><span class="g" style="color:{col};border-color:{col}">{et}</span></div>')
+                f'<span class="c">{r["camp"]}</span>{insignia(r)}</div>')
     rows=''.join(row(r) for r in rs)
     pg=f'<span class="pg">{pag}/{npag}</span>' if npag>1 else ''
     return f"""<!doctype html><html><head><meta charset="utf-8">{FONTS}<style>
@@ -201,7 +215,7 @@ def html_story(dia,rs,pag,npag):
         col=COLORS.get(r['comp'],'#555'); et=f"{r['comp']}{' · '+r['grup'] if r['grup'] else ''}"
         return (f'<div class="r" style="border-left-color:{col}"><span class="h">{r["hora"]}</span>'
                 f'<span class="eq"><span class="t"><img src="{r["hl"]}"><span>{r["h"]}</span></span><span class="t"><img src="{r["al"]}"><span>{r["a"]}</span></span></span>'
-                f'<span class="g" style="color:{col};border-color:{col}">{et}</span></div>')
+                f'{insignia(r,26)}</div>')
     rows=''.join(row(r) for r in rs)
     pg=f'<span class="pg">{pag}/{npag}</span>' if npag>1 else ''
     return f"""<!doctype html><html><head><meta charset="utf-8">{FONTS}<style>

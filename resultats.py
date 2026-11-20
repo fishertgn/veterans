@@ -16,7 +16,7 @@ def html_pagina(sub,rs,pag,npag):
                 f'<span class="t l {w[0]}"><span>{r["h"]}</span><img src="{r["hl"]}"></span>'
                 f'<span class="sc">{marc}</span>'
                 f'<span class="t {w[1]}"><img src="{r["al"]}"><span>{r["a"]}</span></span>'
-                f'<span class="g" style="color:{col};border-color:{col}">{et}</span></div>')
+                f'{P.insignia(r)}</div>')
     rows=''.join(row(r) for r in rs); pg=f'<span class="pg">{pag}/{npag}</span>' if npag>1 else ''
     return f"""<!doctype html><html><head><meta charset="utf-8">{FONTS}<style>
 *{{margin:0;padding:0;box-sizing:border-box}}html,body{{width:1080px;height:1350px;overflow:hidden;position:relative}}img{{display:block}}
@@ -72,7 +72,7 @@ def html_story(dia,rs,pag,npag):
         sc=f'<span class="sc"><b class="{w[0]}">{r["hs"]}</b><b class="{w[1]}">{r["as_"]}</b></span>' if jugat else '<span class="sc np"><b>–</b></span>'
         tw=(w[0] if jugat and w[0]=='w' else '',w[1] if jugat and w[1]=='w' else '')
         return (f'<div class="r" style="border-left-color:{col}"><span class="eq"><span class="t {tw[0]}"><img src="{r["hl"]}"><span>{r["h"]}</span></span>'
-                f'<span class="t {tw[1]}"><img src="{r["al"]}"><span>{r["a"]}</span></span></span>{sc}<span class="g" style="color:{col};border-color:{col}">{et}</span></div>')
+                f'<span class="t {tw[1]}"><img src="{r["al"]}"><span>{r["a"]}</span></span></span>{sc}{P.insignia(r,26)}</div>')
     return P.story_shell('Resultats',dia,''.join(row(r) for r in rs),CSS_STORY,pag,npag)
 
 def generar_story(d0,d1,outdir,test=False,per_pag=12):
