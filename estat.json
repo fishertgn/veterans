@@ -50,13 +50,16 @@
   "dilluns_2026-11-09": true,
   "proxims_2026-11-12": true,
   "proxims_2026-11-13": true,
-  "dilluns_2026-11-16": true
+  "dilluns_2026-11-16": true,
+  "proxims_2026-11-20": true
  },
- "calendari_hash": "d751713988987e9331980363e24189ce",
+ "calendari_hash": "d5f2c1d318be9c4d796bb3f11128d2aa",
  "ig_proxims": [
   "2026-09-25·Història DISSABTE 26 SET",
   "2026-09-25·Història DIUMENGE 27 SET",
-  "2026-10-10·406f05d266·Història DISSABTE 10 OCT"
+  "2026-10-10·406f05d266·Història DISSABTE 10 OCT",
+  "2026-11-21·55520287c0·Història DISSABTE 21 NOV",
+  "2026-11-22·1e17cf9e16·Història DIUMENGE 22 NOV"
  ],
  "ig": {
   "8049": "18335714461277079",
@@ -88,6 +91,16 @@
   "8111": "18138154813711250"
  },
  "proxims_hash": {
-  "2026-10-10": "406f05d266"
- }
+  "2026-10-10": "406f05d266",
+  "2026-11-21": "55520287c0",
+  "2026-11-22": "1e17cf9e16"
+ },
+ "ig_posts": {
+  "proxims_2026-11-20": {
+   "id": "17995311372025783",
+   "hash": "d5f2c1d318be9c4d796bb3f11128d2aa",
+   "clau": "proxims_2026-11-20"
+  }
+ },
+ "ig_posts_errors": {}
 }
