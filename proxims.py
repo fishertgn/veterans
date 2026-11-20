@@ -102,8 +102,9 @@ def curt(name):
 
 def competicions():
     """Competicions de veterans F11 de la temporada EN CURS i amb fases creades.
-    L'organització té torneigs antics (2021-22) encara marcats com a actius: es descarten per temporada."""
-    ts=[t for t in get('/tournaments') if t.get('status')==1 and 'VETERANS' in t['name'].upper() and re.search(r'F\s*-?\s*11',t['name'].upper())]
+    L'organització té torneigs antics (2021-22) encara marcats com a actius: es descarten per temporada.
+    MyGol marca les competicions en joc amb status 1 o 2 (des del nov. 2026 fa servir el 2)."""
+    ts=[t for t in get('/tournaments') if t.get('status') in (1,2) and 'VETERANS' in t['name'].upper() and re.search(r'F\s*-?\s*11',t['name'].upper())]
     det=[]
     for t in ts:
         try: det.append((t,get(f"/tournaments/{t['id']}")))

@@ -154,6 +154,7 @@ def publica_ig_proxims(avui,d0,d1,histories,e):
             et=f'{P.DIES[dia.weekday()]} {dia.day} {P.MES[dia.month-1]}'; k=dia.isoformat()
             if avui.weekday()==3: toca=True; motiu=''
             elif k in hashes and hashes[k]!=hd: toca=True; motiu=' (horari canviat des de dijous)'
+            elif k not in hashes: toca=True; motiu=' (no es van publicar dijous)'
             else: toca=False
             if not toca: continue
             for label,n,png in [x for x in histories if et in x[0]]:
