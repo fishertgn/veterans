@@ -40,13 +40,17 @@ def subtitol(rows,d0,d1):
     dates=f'{d0.day}-{d1.day} {MES[d1.month-1]}' if d0.month==d1.month else f'{d0.day} {MES[d0.month-1]} - {d1.day} {MES[d1.month-1]}'
     return f'{jt} · {dates}'
 
+def ordre_comp(c):
+    """Lliga 1a, 2a, 3a i després la Copa."""
+    return {'LLIGA 1A':0,'LLIGA 2A':1,'LLIGA 3A':2,'COPA':3}.get(c,9)
+
 def generar(d0,d1,outdir,test=False):
     rows=P.partits(d0,d1,jugats=None)
     if test:
         random.seed(7)
         for i,r in enumerate(rows):
             r['hs'],r['as_']=random.choice([0,1,1,2,2,3,4]),random.choice([0,1,1,2,2,3]); r['status']=1 if i in (2,9) else 5
-    rows.sort(key=lambda r:(r['dt'],r['comp'],r['grup'])); out=[]
+    rows.sort(key=lambda r:(ordre_comp(r['comp']),r['grup'],r['dt'])); out=[]   # separats per competició
     if not rows: return out
     sub=subtitol(rows,d0,d1); pags=[rows[i:i+PER_PAG] for i in range(0,len(rows),PER_PAG)]
     for i,p in enumerate(pags,1):

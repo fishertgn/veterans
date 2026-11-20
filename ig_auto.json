@@ -1,5 +1,7 @@
 {
  "histories_resultats": true,
- "_nota": "Interruptors de la publicació automàtica a Instagram (posa false per aturar). histories_resultats: cada resultat. histories_proxims: dijous, i divendres només si canvia l'horari. Els posts NO es publiquen mai sols.",
- "histories_proxims": true
+ "_nota": "Interruptors de la publicació automàtica a Instagram (posa false per aturar). histories_resultats: cada resultat. histories_proxims: dijous, i divendres només si canvia l'horari. posts_proxims: post del dijous i, divendres, un de nou si canvia l'horari. posts_resultats: dilluns, carrusel de resultats i carrusel de classificacions.",
+ "histories_proxims": true,
+ "posts_proxims": true,
+ "posts_resultats": true
 }

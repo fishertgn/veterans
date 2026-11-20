@@ -193,6 +193,62 @@ def proxims_setmana(avui):
         if pj: envia_peu(PE.partit(pj,info),'partit','partit de la jornada')
     e['calendari_hash']=h; e['fets'][clau]=True; desa(e); log('proxims enviat',dia)
 
+# ---- Posts del feed publicats automàticament (interruptors posts_proxims i posts_resultats a ig_auto.json) ----
+def publica_post_ig(clau,pngs,peu,tema,e):
+    """Publica una imatge o un carrusel (màx. 10) al feed. Torna l'id o None. Mai trenca el publicador.
+    Si falla, ho reintenta a la següent execució (màxim 3 intents per clau)."""
+    errs=e.setdefault('ig_posts_errors',{})
+    if errs.get(clau,0)>=3: return None
+    try:
+        uid=IG.compte()['user_id']; urls=[IG.url_publica(IG.a_jpeg(p)) for p in pngs[:10]]
+        mid=IG.publica_imatge(uid,urls[0],peu) if len(urls)==1 else IG.publica_carrusel(uid,urls,peu)
+        envia_text(f'📲 Publicat a Instagram el post: {clau} ({len(urls)} imatge{"s" if len(urls)>1 else ""})',tema)
+        return mid
+    except Exception as ex:
+        errs[clau]=errs.get(clau,0)+1; desa(e)
+        log('IG post ERROR',clau,repr(ex)[:200])
+        envia_text(f"⚠️ No s'ha pogut publicar a Instagram el post {clau} (intent {errs[clau]}/3): {ex}"+(" Puja'l a mà." if errs[clau]>=3 else " Es reintentarà."),tema)
+        return None
+
+def ig_post_proxims(avui):
+    """Dijous: post de pròxims partits. Divendres: només si l'horari ha canviat des del post publicat
+    (o si dijous no es va publicar). Es pot cridar a cada execució: no repeteix res."""
+    if not IG.auto('posts_proxims'): return
+    e=estat(); d0,d1=cap_de_setmana(avui); base='proxims_'+d0.isoformat(); fets=e.setdefault('ig_posts',{})
+    rows=P.partits(d0,d1,jugats=False)
+    if not rows: return
+    h=hash_calendari(d0,d1); ultim=fets.get(base)
+    if ultim and (avui.weekday()!=4 or ultim.get('hash')==h): return
+    peu=PE.proxims(rows)
+    clau=base
+    if ultim:
+        clau=f'{base}_canvi_{h[:6]}'
+        peu=("⚠️ HORARIS ACTUALITZATS ⚠️\nHi ha canvis respecte a la publicació d'ahir. Aquesta és la versió bona.\n\n"+peu)[:2200]
+    pngs=[p for _,_,p in P.generar(d0,d1,OUT)]
+    if not pngs: return
+    mid=publica_post_ig(clau,pngs,peu,'proxims',e)
+    if mid:
+        fets[base]={'id':mid,'hash':h,'clau':clau}; desa(e); log('IG post',clau,mid)
+
+def ig_post_dilluns(avui):
+    """Dilluns: carrusel de resultats (ordenats per competició) i carrusel de classificacions."""
+    if not IG.auto('posts_resultats'): return
+    e=estat(); d0,d1=avui-datetime.timedelta(days=3),avui-datetime.timedelta(days=1); fets=e.setdefault('ig_posts',{})
+    k='resultats_'+d0.isoformat()
+    if k not in fets:
+        rows=P.partits(d0,d1,jugats=None)
+        pngs=[p for _,_,p in R.generar(d0,d1,OUT)]
+        if pngs:
+            mid=publica_post_ig(k,pngs,PE.resultats(sorted(rows,key=lambda r:(R.ordre_comp(r['comp']),r['grup'],r['dt']))),'resultats',e)
+            if mid: fets[k]={'id':mid}; desa(e)
+    k='classificacio_'+d0.isoformat()
+    if k not in fets and 'resultats_'+d0.isoformat() in fets:
+        pngs=[p for _,p in K.generar(OUT)]
+        if pngs:
+            peu=PE._tanca(f'🏆 CLASSIFICACIONS · després del cap de setmana {d0.day}-{d1.day} {P.MES[d1.month-1].lower()}\n\nLliga 1a, 2a i 3a Divisió i Copa F11 Veterans. Llisca per veure-les totes 👉',[])
+            mid=publica_post_ig(k,pngs,peu,'classificacio',e)
+            if mid: fets[k]={'id':mid}; desa(e)
+
 def resum_mensual(avui):
     """Primer dilluns de cada mes: resum del mes anterior."""
     e=estat(); ant=(avui.replace(day=1)-datetime.timedelta(days=1)); clau=f'mensual_{ant.year}-{ant.month:02d}'
@@ -212,7 +268,8 @@ def main():
             ok=envia_fitxer(historia_resultat(r),'✅ Prova del publicador automàtic (GitHub Actions)','sistema'); log('PROVA enviada',ok); return
         if '--ara' in sys.argv: return comprova_resultats(avui)
         if '--dilluns' in sys.argv: return paquet_dilluns(avui)
-        if '--proxims' in sys.argv: return proxims_setmana(avui)
+        if '--proxims' in sys.argv: proxims_setmana(avui); return ig_post_proxims(avui)
+        if '--igpostdilluns' in sys.argv: return ig_post_dilluns(avui)
         if '--mensual' in sys.argv: return resum_mensual(avui)
         if '--igpendents' in sys.argv: return ig_pendents(avui)
         if '--partit' in sys.argv:
@@ -222,9 +279,12 @@ def main():
             return
         if wd==0 and 9<=h<=13:
             paquet_dilluns(avui)
+            ig_post_dilluns(avui)
             if avui.day<=7: resum_mensual(avui)      # tolera retards del programador; l'estat evita repetir
-        elif wd in (3,4) and 10<=h<=13: proxims_setmana(avui)
-        elif (wd==4 and h>=22) or (wd==5 and 14<=h<=23) or (wd==6 and 9<=h<=18): comprova_resultats(avui)
+        elif wd in (3,4) and 7<=h<=13:
+            proxims_setmana(avui)
+            ig_post_proxims(avui)
+        elif (wd==4 and h>=14) or (wd in (5,6) and (h>=8 or h<2)): comprova_resultats(avui)   # dv 14-24h, ds i dg 8-24h (+ marge de mitjanit)
         else: print('fora d\'horari, res a fer')      # sense escriure al registre: amb el disparador extern s'executa cada mitja hora
     except Exception as ex:
         log('ERROR',traceback.format_exc()); envia_text(f'⚠️ Error al publicador: {ex}')
