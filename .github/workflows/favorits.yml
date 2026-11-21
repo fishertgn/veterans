@@ -1,0 +1,33 @@
+name: Favorits en directe
+# Avisos dels equips i jugadors preferits (favorits.json) al tema ⭐ Favorits de Telegram.
+# Cada mitja hora mira si hi ha un partit preferit a punt de començar o en joc; si n'hi ha,
+# el segueix cada 75 s fins que acaba (màxim 3,5 h per execució). Hores en UTC.
+on:
+  schedule:
+    - cron: '8,38 12-23 * * 5'     # divendres 13/14h-24h
+    - cron: '8,38 6-23 * * 6,0'    # dissabte i diumenge 7/8h-24h
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: favorits
+  cancel-in-progress: false
+jobs:
+  favorits:
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - name: Seguir els favorits
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python favorits.py
+      - name: Desar l'estat
+        if: always()
+        run: |
+          git config user.name "publicador"; git config user.email "publicador@users.noreply.github.com"
+          git add estat_favorits.json 2>/dev/null || true
+          git diff --cached --quiet || (git commit -m "favorits $(date -u +%FT%H:%MZ)" && (git pull --rebase -q || true) && git push)
