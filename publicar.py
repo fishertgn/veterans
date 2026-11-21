@@ -5,7 +5,7 @@
     publicar.py --dilluns  → força el paquet del dilluns ara mateix"""
 import os, sys, re, json, time, datetime, subprocess, hashlib, traceback
 V=os.path.dirname(os.path.abspath(__file__)); os.chdir(V); sys.path.insert(0,V)
-import proxims as P, resultats as R, classificacio as K, story as S, golejadors as G, peus as PE, partit as PJ, reel as RL, mensual as MS, instagram as IG
+import proxims as P, resultats as R, classificacio as K, story as S, golejadors as G, peus as PE, partit as PJ, reel as RL, mensual as MS, instagram as IG, cronica as C
 CFG=P.cfg(); ESTAT=os.path.join(V,'estat.json'); OUT=os.path.join(V,'out'); os.makedirs(OUT,exist_ok=True)
 LOG=open(os.path.join(V,'publicar.log'),'a')
 def log(*a):
@@ -26,7 +26,7 @@ def tg(method,tema=None,**fields):
     args=['curl','-s','-m','240','-X','POST',f'https://api.telegram.org/bot{CFG["telegram_bot_token"]}/{method}','-F',f'chat_id={desti}']
     fil=(TEMES.get('temes') or {}).get(tema) if (grup and tema) else None
     if fil: args+=['-F',f'message_thread_id={fil}']
-    for k,v in fields.items(): args+=['-F',f'{k}={v}']
+    for k,v in fields.items(): args+=(['-F',f'{k}={v}'] if k=='document' else ['--form-string',f'{k}={v}'])   # --form-string: el text pot començar per < o @
     for i in range(4):
         r=subprocess.run(args+['-o','/dev/null','-w','%{http_code}'],capture_output=True,text=True)
         if r.stdout=='200': return True
@@ -34,6 +34,7 @@ def tg(method,tema=None,**fields):
     log('ERROR telegram',method,tema,r.stdout); return False
 def envia_fitxer(p,caption,tema=None): return tg('sendDocument',tema,document='@'+p,caption=caption)
 def envia_text(t,tema='sistema'): return tg('sendMessage',tema,text=t)
+def envia_html(t,tema='directe'): return tg('sendMessage',tema,text=t,parse_mode='HTML',disable_web_page_preview='true')
 def envia_peu(text,tema,de=''):
     """Peu de foto en un missatge sol, perquè es pugui copiar sencer amb una pulsació llarga."""
     if not text: return
@@ -82,7 +83,23 @@ def comprova_resultats(avui):
         if envia_fitxer(png,f'🔴 FINAL · {r["h"]} {r["hs"]}-{r["as_"]} {r["a"]} · {r["comp"]}{" · "+r["grup"] if r["grup"] else ""}','directe'):
             e['enviats'][str(r['id'])]=f'{r["hs"]}-{r["as_"]}'; desa(e)
         publica_ig(r,png,e)
+    envia_croniques(rows,e)
     return len(nous)
+
+def envia_croniques(rows,e):
+    """Crònica de cada partit acabat (gols, assistències, targetes, MVP) al tema Directe de Telegram.
+    Si l'acta encara no té els golejadors, s'espera fins a 3 execucions (~1,5 h) i després s'envia igualment."""
+    fetes=e.setdefault('croniques',{})
+    for r in sorted(rows,key=lambda r:r['dt']):
+        k=str(r['id'])
+        if k not in e['enviats'] or fetes.get(k) is True: continue
+        try:
+            a=C.dades(r['id']); intents=fetes.get(k,0)
+            if not a['gols'] and r['hs']+r['as_']>0 and intents<3:
+                fetes[k]=intents+1; desa(e); continue
+            if envia_html(C.missatge(r,a),'directe'): fetes[k]=True; desa(e)
+        except Exception as ex:
+            log('CRONICA ERROR',k,repr(ex)[:200])
 
 def paquet_dilluns(avui):
     e=estat(); clau='dilluns_'+avui.isoformat()
