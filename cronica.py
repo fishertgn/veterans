@@ -46,30 +46,10 @@ def dades(id_partit):
                 mvp=mvp, arbitre=P.nice(arbitre) if arbitre else '')
 
 
-def _titular(r, a):
-    """Titular segons com ha anat el partit."""
-    hs, as_, loc, vis = r['hs'], r['as_'], r['h'], r['a']
-    dif, total = hs - as_, hs + as_
-    guanya = loc if dif > 0 else vis
-    # remuntada: el guanyador va anar perdent en algun moment
-    l = v = 0; perdia = False
-    for g in a['gols']:
-        if g['eq'] == 'L': l += 1
-        else: v += 1
-        if (dif > 0 and l < v) or (dif < 0 and v < l): perdia = True
-    if dif == 0:
-        return '🧱 EMPAT SENSE GOLS 🧱' if total == 0 else f'⚖️ EMPAT A {hs}! PUNTS REPARTITS ⚖️'
-    if perdia:
-        return f'🔄 REMUNTADA ÈPICA DEL {guanya.upper()}! 🔄'
-    if total >= 7:
-        return f'🎆 FESTIVAL DE GOLS! GUANYA EL {guanya.upper()} 🎆'
-    if abs(dif) >= 4:
-        return f'💥 GOLEJADA DEL {guanya.upper()}! 💥'
-    if dif < 0:
-        return f'✈️ ASSALT A DOMICILI DEL {guanya.upper()}! ✈️'
-    if abs(dif) == 1:
-        return f'😮‍💨 PER LA MÍNIMA! GUANYA EL {guanya.upper()}'
-    return f'🔥 VICTÒRIA CONTUNDENT DEL {guanya.upper()} 🔥'
+def _curt(nom):
+    """Àlex Gonzalez → Àlex G."""
+    p = (nom or '').split()
+    return p[0] + (' ' + p[1][0] + '.' if len(p) > 1 else '') if p else ''
 
 
 def missatge(r, a=None):
@@ -80,8 +60,6 @@ def missatge(r, a=None):
     t = [f"🚨🚨 <b>FINAL</b> 🚨🚨",
          f"{ICONA.get(r['comp'], '⚽')} <b>{esc(comp)}</b> · {esc(r['jornada'].upper())}",
          '',
-         f"<b>{esc(_titular(r, a))}</b>",
-         '',
          f"🏠 <b>{esc(r['h'].upper())}</b>",
          f"          {num_gran(r['hs'])} ➖ {num_gran(r['as_'])}",
          f"✈️ <b>{esc(r['a'].upper())}</b>",
@@ -90,27 +68,10 @@ def missatge(r, a=None):
         t.append('⚽ <b>GOLS</b>')
         for g in a['gols']:
             extra = ' <b>(penal 🎯)</b>' if g['tipus'] == 'pen' else ' <i>(en pròpia porta 🙈)</i>' if g['tipus'] == 'pp' else ''
-            ass = f"\n        🅰️ <i>{esc(g['assist'])}</i>" if g['assist'] else ''
+            ass = f" <i>(ass. {esc(_curt(g['assist']))})</i>" if g['assist'] else ''
             t.append(f"{'🏠' if g['eq'] == 'L' else '✈️'} <code>{g['min']:>2}'</code> {esc(g['j'])}{extra}{ass}")
     elif r['hs'] + r['as_'] > 0:
         t.append('⚽ <i>Golejadors pendents a l\'acta</i>')
-    # Destacats
-    dest = []
-    comptes = {}
-    for g in a['gols']:
-        if g['tipus'] != 'pp': comptes[(g['j'], g['eq'])] = comptes.get((g['j'], g['eq']), 0) + 1
-    for (j, eq), n in sorted(comptes.items(), key=lambda x: -x[1]):
-        if n >= 4: dest.append(f"🤯 <b>PÒQUER DE {esc(j.upper())}!!!</b> ({n} gols)")
-        elif n == 3: dest.append(f"🎩 <b>HAT-TRICK DE {esc(j.upper())}!!</b>")
-        elif n == 2: dest.append(f"✌️ Doblet de <b>{esc(j)}</b>")
-    if r['as_'] == 0 and r['hs'] > 0: dest.append(f"🧤 Porteria a zero del <b>{esc(r['h'])}</b>")
-    if r['hs'] == 0 and r['as_'] > 0: dest.append(f"🧤 Porteria a zero del <b>{esc(r['a'])}</b>")
-    tard = [g for g in a['gols'] if g['min'] >= 88]
-    if tard and abs(r['hs'] - r['as_']) <= 1: dest.append(f"⏱️ Gol al límit de <b>{esc(tard[-1]['j'])}</b> ({tard[-1]['min']}')")
-    for e in a['vermelles']:
-        dest.append(f"🟥 Expulsat: <b>{esc(e['j'])}</b> ({e['min']}')")
-    if dest:
-        t += [sep] + dest
     t.append(sep)
     if a['mvp']: t.append(f"⭐️⭐️ <b>MVP · {esc(a['mvp'].upper())}</b> ⭐️⭐️")
     t.append(f"🟨 x{len(a['grogues'])}   🟥 x{len(a['vermelles'])}")
