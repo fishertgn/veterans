@@ -66,9 +66,10 @@
   "proxims_2026-11-12": true,
   "proxims_2026-11-13": true,
   "dilluns_2026-11-16": true,
-  "proxims_2026-11-20": true
+  "proxims_2026-11-20": true,
+  "dilluns_2026-11-23": true
  },
- "calendari_hash": "d5f2c1d318be9c4d796bb3f11128d2aa",
+ "calendari_hash": "15fd0fc1133596ae6df160773fb18175",
  "ig_proxims": [
   "2026-09-25·Història DISSABTE 26 SET",
   "2026-09-25·Història DIUMENGE 27 SET",
@@ -130,6 +131,12 @@
    "id": "17995311372025783",
    "hash": "d5f2c1d318be9c4d796bb3f11128d2aa",
    "clau": "proxims_2026-11-20"
+  },
+  "resultats_2026-11-20": {
+   "id": "18016148847005641"
+  },
+  "classificacio_2026-11-20": {
+   "id": "18072776630785302"
   }
  },
  "ig_posts_errors": {},
