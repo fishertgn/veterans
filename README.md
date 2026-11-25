@@ -13,4 +13,4 @@ S'executa sol a GitHub Actions (`.github/workflows/publicar.yml`). Secrets neces
 - **Dilluns 9h**: paquet setmanal a Telegram + **carrusel de resultats** (per competició) i **carrusel de classificacions** a Instagram.
 
 Interruptors a `ig_auto.json`: `histories_resultats`, `histories_proxims`, `posts_proxims`, `posts_resultats` (posa `false` per aturar-ne un).
-Es manté des del PC de casa (carpeta `C:\Users\luis\Claude\veterans-existent`), però s'executa sol a GitHub: no cal tenir cap ordinador encès.
+Es manté des del PC de casa (carpeta `G:\Mi unidad\Claude\VETERANS TARRAGONA\veterans-existent`), però s'executa sol a GitHub: no cal tenir cap ordinador encès.
